@@ -71,6 +71,14 @@
       {% endfor %}
     </ul>
     <p class="tested-on-meta">last run {{ s.tested_on.tested_at[:10] }}</p>
+    {% elif not s.ci_runnable %}
+    <h3>Tested on</h3>
+    <p class="ci-structural-note">
+      <span class="badge badge-ci-structural">CI structure-only</span>
+    </p>
+    <p class="tested-on-meta">
+      Runtime is author-claimed; CI verifies metadata + structure only.
+    </p>
     {% endif %}
 
     <h3>Authors</h3>
