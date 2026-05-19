@@ -1,15 +1,14 @@
 # NengoZoo
 
-[![Tier-1 review](https://github.com/nengo/nengo-zoo/actions/workflows/review.yml/badge.svg)](https://github.com/nengo/nengo-zoo/actions/workflows/review.yml)
-[![Pages deploy](https://github.com/nengo/nengo-zoo/actions/workflows/pages.yml/badge.svg)](https://github.com/nengo/nengo-zoo/actions/workflows/pages.yml)
+[![Tier-1 review](https://github.com/celiasmith/nengo-zoo-test/actions/workflows/review.yml/badge.svg)](https://github.com/celiasmith/nengo-zoo-test/actions/workflows/review.yml)
+[![Pages deploy](https://github.com/celiasmith/nengo-zoo-test/actions/workflows/pages.yml/badge.svg)](https://github.com/celiasmith/nengo-zoo-test/actions/workflows/pages.yml)
 [![License: GPL v2+](https://img.shields.io/badge/License-GPL%20v2%2B-blue.svg)](LICENSE)
 
 A community library of [Nengo](https://www.nengo.ai/) models, components, and networks.
 
-> **Browse the library:** [nengo.github.io/nengo-zoo](#)
+> **Browse the library:** [celiasmith.github.io/nengo-zoo-test](https://celiasmith.github.io/nengo-zoo-test/)
 > **Want to contribute?** See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
-*(Replace the URLs above with the actual repo + Pages URL once the zoo is live.)*
 
 ## What's in here?
 
@@ -52,8 +51,8 @@ nengo-zoo/
 ## Quick start (contributors)
 
 ```bash
-git clone https://github.com/nengo/nengo-zoo
-cd nengo-zoo
+git clone https://github.com/celiasmith/nengo-zoo-test
+cd nengo-zoo-test
 cp -r template submissions/<your-submission>
 # fill in metadata.yaml, README.md, your code, tests…
 pip install pyyaml "jsonschema>=4.18"

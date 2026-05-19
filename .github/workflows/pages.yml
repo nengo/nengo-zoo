@@ -30,10 +30,14 @@ jobs:
       - name: Install build dependencies
         # Nengo is needed because build_site.py reuses the validator's
         # check_gui_shape, which imports the entry_point and checks for a
-        # nengo.Network at module level.
+        # nengo.Network at module level. jsonschema is a transitive requirement
+        # of validate_submission.py (it imports it at module top level and
+        # sys.exits if missing). scipy/matplotlib catch submission entry-points
+        # that import them at module level (lamprey uses scipy.integrate).
         run: |
           pip install --upgrade pip
-          pip install pyyaml jinja2 markdown pygments "nengo>=4,<5" numpy
+          pip install pyyaml jinja2 markdown pygments "jsonschema>=4.18" \
+                      "nengo>=4,<5" numpy scipy matplotlib
 
       - name: Build site
         run: python tools/build_site.py
