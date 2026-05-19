@@ -71,9 +71,16 @@ jobs:
           python-version: "3.11"
 
       - name: Install validation tooling + pinned Nengo
+        # matplotlib is included unconditionally because Nengo's pytest plugin
+        # (auto-loaded via the `pytest11` entry point) triggers collection of
+        # nengo's installed test suite, which imports nengo.utils.matplotlib at
+        # module level. Without matplotlib here, collection fails before our
+        # submission's tests even run — and submissions that don't themselves
+        # use matplotlib (e.g. lorenz, controlled-oscillator) wouldn't normally
+        # list it in requirements.txt.
         run: |
           pip install --upgrade pip
-          pip install pyyaml "jsonschema>=4.18" pytest packaging
+          pip install pyyaml "jsonschema>=4.18" pytest packaging matplotlib
           pip install "nengo==${{ matrix.nengo-version }}" "${{ matrix.numpy-pin }}"
 
       - name: Skip cell if version outside declared range or ci_runnable=false
