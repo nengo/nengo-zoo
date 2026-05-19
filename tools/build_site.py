@@ -94,8 +94,10 @@ def first_line_after_h1(md_text: str) -> str:
 
 def load_submission(sub_dir: Path) -> dict:
     """Parse one submission folder into a render-ready dict."""
-    meta = yaml.safe_load((sub_dir / "metadata.yaml").read_text())
-    readme_md = (sub_dir / "README.md").read_text()
+    # encoding="utf-8" — see note in validate_submission.py; otherwise breaks
+    # on Windows with non-Western default code pages (e.g. CP932).
+    meta = yaml.safe_load((sub_dir / "metadata.yaml").read_text(encoding="utf-8"))
+    readme_md = (sub_dir / "README.md").read_text(encoding="utf-8")
 
     # Inspect the GUI-candidate script (entry_point or nengogui.script)
     # to decide whether to show the GUI badge.
@@ -122,7 +124,7 @@ def load_submission(sub_dir: Path) -> dict:
     if tested_on_path.exists():
         import json as _json
         try:
-            tested_on = _json.loads(tested_on_path.read_text())
+            tested_on = _json.loads(tested_on_path.read_text(encoding="utf-8"))
         except _json.JSONDecodeError:
             tested_on = None
 
@@ -257,7 +259,7 @@ def render(out_root: Path) -> int:
     contributing_src = REPO_ROOT / "CONTRIBUTING.md"
     if contributing_src.exists():
         contributing_html = markdown.markdown(
-            contributing_src.read_text(), extensions=MARKDOWN_EXTENSIONS
+            contributing_src.read_text(encoding="utf-8"), extensions=MARKDOWN_EXTENSIONS
         )
         page = env.get_template("page.html").render(
             page_title="Submit to NengoZoo",

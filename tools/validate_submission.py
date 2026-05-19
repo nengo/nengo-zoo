@@ -113,7 +113,7 @@ def import_script(script_path: Path, extra_sys_path: list[Path] | None = None):
 def extract_cfg_names(cfg_path: Path) -> set[str]:
     """Bare identifiers referenced by a NengoGUI .cfg file."""
     names: set[str] = set()
-    text = cfg_path.read_text()
+    text = cfg_path.read_text(encoding="utf-8")
     for pat in CFG_NAME_PATTERNS:
         for m in pat.finditer(text):
             names.add(m.group(1))
@@ -150,7 +150,9 @@ def validate(submission_dir: Path) -> bool:
         return False
 
     try:
-        with meta_path.open() as f:
+        # encoding="utf-8" — Python on Windows with non-Western locales otherwise
+        # defaults to the OEM code page (e.g. CP932) and chokes on UTF-8 content.
+        with meta_path.open(encoding="utf-8") as f:
             metadata = yaml.safe_load(f)
         check("metadata.yaml parses as YAML", True)
     except yaml.YAMLError as e:
@@ -158,7 +160,7 @@ def validate(submission_dir: Path) -> bool:
         return False
 
     try:
-        with SCHEMA_PATH.open() as f:
+        with SCHEMA_PATH.open(encoding="utf-8") as f:
             schema = json.load(f)
     except FileNotFoundError:
         check(f"schema present at {SCHEMA_PATH}", False)
