@@ -11,6 +11,10 @@ on:
     branches: [main]
     paths:
       - "submissions/**"
+      - "schema/**"
+      - "tools/**"
+      - ".github/workflows/review.yml"
+  workflow_dispatch:       # allow manual runs from the Actions tab
 
 jobs:
   detect:
