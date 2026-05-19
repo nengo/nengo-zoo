@@ -1,0 +1,47 @@
+name: mnist-convnet
+type: model
+version: 0.1.0
+
+authors:
+  - name: Applied Brain Research / CNRG
+    affiliation: Nengo ecosystem
+
+license: GPL-2.0-or-later
+
+description: >
+  A convolutional spiking network trained on MNIST with NengoDL and
+  deployed on Loihi. Demonstrates training a TensorFlow-defined network
+  inside Nengo, then running the trained spiking network on Loihi
+  neuromorphic hardware.
+
+tags:
+  - convolutional
+  - vision
+  - mnist
+  - deep-learning
+  - loihi
+  - nengo-dl
+
+nengo_version: ">=3.2,<5"
+
+# This submission's whole purpose is to demonstrate the nengo_dl + nengo_loihi
+# stack. Author-claimed runtime; CI is structure-only.
+backends:
+  - nengo_dl
+  - nengo_loihi
+
+dependencies:
+  - nengo_dl>=3.5
+  - tensorflow>=2.6
+  - numpy>=1.20
+  - matplotlib
+  - requests
+
+complexity: advanced
+
+# CI runs the validator + schema check only — see ci_runnable below.
+ci_runnable: false
+
+paper:
+  citation: "Hunsberger, E. & Eliasmith, C. (2016). Training spiking deep networks for neuromorphic hardware."
+  url: https://arxiv.org/abs/1611.05141

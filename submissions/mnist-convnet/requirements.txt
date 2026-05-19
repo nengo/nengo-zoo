@@ -1,0 +1,7 @@
+nengo>=3.2,<5
+nengo-dl>=3.5
+tensorflow>=2.6
+nengo-loihi
+numpy>=1.20
+matplotlib
+requests

@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nengo.ai/zoo/schemas/metadata.schema.json",
+  "title": "NengoZoo submission metadata",
+  "description": "Schema for the metadata.yaml file in every NengoZoo submission.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "name",
+    "type",
+    "version",
+    "authors",
+    "license",
+    "description",
+    "tags",
+    "nengo_version",
+    "backends",
+    "complexity"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$",
+      "description": "Lowercase kebab-case identifier. Must match the submission folder name."
+    },
+    "type": {
+      "enum": ["component", "network", "model"],
+      "description": "What kind of artifact this is. See design doc §4."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?$",
+      "description": "Semantic version of this submission."
+    },
+    "authors": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "additionalProperties": false,
+        "properties": {
+          "name":        { "type": "string" },
+          "affiliation": { "type": "string" },
+          "email":       { "type": "string", "format": "email" },
+          "orcid":       { "type": "string", "pattern": "^\\d{4}-\\d{4}-\\d{4}-\\d{3}[\\dX]$" }
+        }
+      }
+    },
+    "license": {
+      "type": "string",
+      "description": "SPDX license identifier. Default: GPL-2.0-or-later (matches Nengo).",
+      "examples": ["GPL-2.0-or-later", "GPL-3.0-or-later", "MIT", "BSD-3-Clause"]
+    },
+    "description": {
+      "type": "string",
+      "minLength": 30,
+      "maxLength": 500,
+      "description": "One- to three-sentence summary."
+    },
+    "tags": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+      "uniqueItems": true,
+      "description": "Free-form topic tags (e.g. working-memory, learning-rule, motor-control)."
+    },
+    "nengo_version": {
+      "type": "string",
+      "description": "PEP 440 version specifier for required Nengo version (e.g. '>=3.2,<4').",
+      "minLength": 1
+    },
+    "backends": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "enum": ["core", "nengo_dl", "nengo_loihi", "nengo_ocl", "nengo_spa", "nengo_fpga"] },
+      "uniqueItems": true,
+      "description": "Backends this submission claims to support. CI only verifies 'core'; others are author-claimed."
+    },
+    "dependencies": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "PyPI-style dependency specifiers beyond Nengo (e.g. 'numpy>=1.20')."
+    },
+    "complexity": {
+      "enum": ["beginner", "intermediate", "advanced"],
+      "description": "Suggested audience level."
+    },
+    "paper": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "citation": { "type": "string", "minLength": 5 },
+        "doi":      { "type": "string", "pattern": "^10\\.\\d{4,9}/" },
+        "url":      { "type": "string", "format": "uri" }
+      },
+      "description": "Optional paper / citation link."
+    },
+    "related": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+      "uniqueItems": true,
+      "description": "Names of related submissions in the zoo (auto-cross-linked on submission pages)."
+    },
+    "entry_point": {
+      "type": "string",
+      "description": "Path to the canonical runnable artifact (a Python script). CI runs this. For 'model' type: typically the script that reproduces the headline figure or that opens in NengoGUI. For 'component' / 'network' types: defaults to 'examples/example_usage.py'. Optional when ci_runnable is false."
+    },
+    "ci_runnable": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether CI can run this submission. Set to false for submissions that need heavyweight non-core backends (e.g. nengo_dl + TensorFlow + GPU, or nengo_loihi hardware) — CI will do structure + schema validation only, and the site will display an 'author-claimed; CI structure-only' badge."
+    },
+    "nengogui": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["script"],
+      "properties": {
+        "script": {
+          "type": "string",
+          "description": "Path to a NengoGUI-runnable script, when distinct from entry_point. (If entry_point is itself a GUI-shaped script, this block can be omitted.)"
+        },
+        "config": {
+          "type": "string",
+          "description": "Path to the matching .cfg file. Defaults to <script>.cfg if omitted."
+        }
+      },
+      "description": "Declares an explicit NengoGUI variant when the canonical entry_point isn't itself a GUI script. Earns the 'nengogui-ready' badge if the script imports cleanly and exposes a top-level nengo.Network."
+    }
+  }
+}

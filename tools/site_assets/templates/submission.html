@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}{{ s.name }} — Nengo Zoo{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="crumbs"><a href="{{ home_path }}">← all submissions</a></div>
+  <h1 class="page-title">{{ s.name }}</h1>
+  {% if s.tagline %}<p class="page-subtitle">{{ s.tagline }}</p>{% endif %}
+  <div class="page-badges">
+    <a class="badge badge-type badge-type-{{ s.type }}"
+       href="{{ home_path }}?type={{ s.type }}"
+       title="browse all type={{ s.type }}">{{ s.type }}</a>
+    <span class="badge badge-complexity">{{ s.complexity }}</span>
+    {% if s.nengogui_ready %}
+      <a class="badge badge-gui" href="{{ home_path }}?gui=1"
+         title="browse NengoGUI-ready submissions">NengoGUI-ready</a>
+    {% endif %}
+    {% if not s.ci_runnable %}
+      <span class="badge badge-ci-structural" title="CI verifies structure + metadata only; runtime is author-claimed">CI structure-only</span>
+    {% endif %}
+    {% for tag in s.tags %}
+      <a class="badge badge-tag" href="{{ home_path }}?q={{ tag }}"
+         title="search: {{ tag }}">{{ tag }}</a>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="layout">
+  <div class="content">
+    {{ s.readme_html | safe }}
+
+    {% if s.figures %}
+    <section class="figures">
+      <h2>Figures</h2>
+      <div class="figures-grid">
+        {% for f in s.figures %}
+        <figure>
+          <a href="{{ f.url }}"><img src="{{ f.url }}" alt="{{ f.name }}"></a>
+          <figcaption>{{ f.name }}</figcaption>
+        </figure>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+  </div>
+
+  <aside class="sidebar">
+    <a class="download-btn" href="{{ s.download.filename }}" download>
+      <span class="download-btn-label">Download</span>
+      <span class="download-btn-meta">{{ s.download.filename }} · {{ s.download.size }}</span>
+    </a>
+
+    <h3>Metadata</h3>
+    <dl>
+      <dt>Version</dt><dd>{{ s.version }}</dd>
+      <dt>License</dt><dd><code>{{ s.license }}</code></dd>
+      <dt>Nengo</dt><dd><code>{{ s.nengo_version }}</code></dd>
+      {% if s.entry_point %}<dt>Entry</dt><dd><code>{{ s.entry_point }}</code></dd>{% endif %}
+    </dl>
+
+    {% if s.tested_on and s.tested_on.matrix %}
+    <h3>Tested on</h3>
+    <ul class="tested-on">
+      {% for cell in s.tested_on.matrix %}
+        {% if cell.status != "skip" %}
+        <li class="tested-row tested-{{ cell.status }}" title="{{ cell.details }}">
+          <span class="tested-mark">{{ "✓" if cell.status == "pass" else "✗" }}</span>
+          <span class="tested-label">Nengo {{ cell.nengo }}</span>
+        </li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+    <p class="tested-on-meta">last run {{ s.tested_on.tested_at[:10] }}</p>
+    {% endif %}
+
+    <h3>Authors</h3>
+    <ul style="display:block;">
+      {% for a in s.authors %}
+        <li style="display: list-item; list-style: none; margin-bottom: 0.2em;">
+          {{ a.name }}{% if a.affiliation %} <span style="color: var(--fg-faint);">— {{ a.affiliation }}</span>{% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+
+    <h3>Backends</h3>
+    <ul>
+      {% for b in s.backends %}
+        <li><span class="badge badge-tag">{{ b }}</span></li>
+      {% endfor %}
+    </ul>
+
+    {% if s.paper %}
+    <h3>Citation</h3>
+    <p style="font-size: 0.82rem; color: var(--fg-muted); margin: 0.3em 0;">
+      {{ s.paper.citation }}
+    </p>
+    {% if s.paper.doi %}
+      <p style="font-size: 0.82rem; margin: 0.3em 0;">
+        DOI: <a href="https://doi.org/{{ s.paper.doi }}">{{ s.paper.doi }}</a>
+      </p>
+    {% endif %}
+    {% if s.paper.url %}
+      <p style="font-size: 0.82rem; margin: 0.3em 0;">
+        <a href="{{ s.paper.url }}">paper link →</a>
+      </p>
+    {% endif %}
+    {% endif %}
+
+    {% if s.related %}
+    <h3>Related</h3>
+    <ul>
+      {% for r in s.related %}
+        <li><a href="../{{ r }}/index.html">{{ r }}</a></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

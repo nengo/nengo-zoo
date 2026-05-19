@@ -1,0 +1,62 @@
+# Nengo Zoo submission metadata.
+# Validated against schema/metadata.schema.json by CI.
+# All fields are required unless marked OPTIONAL.
+
+# Lowercase kebab-case. MUST match the submission's folder name under submissions/.
+name: my-submission
+
+# component | network | model
+# See design doc §4 for definitions.
+type: network
+
+# Semantic version. Bump on every release.
+version: 0.1.0
+
+# At least one author. ORCID strongly encouraged for citation.
+authors:
+  - name: Jane Doe
+    affiliation: University of Waterloo, CNRG
+    email: jane@example.org
+    orcid: 0000-0000-0000-0000
+
+# SPDX identifier. Default: GPL-2.0-or-later (matches Nengo).
+license: GPL-2.0-or-later
+
+# 1–3 sentence summary. 30–500 chars.
+description: >
+  A one- to three-sentence description of what this submission is and
+  what it's useful for.
+
+# Free-form topic tags. Lowercase kebab-case.
+tags:
+  - example-tag
+
+# PEP 440 specifier for Nengo version compatibility.
+nengo_version: ">=3.2,<5"
+
+# Backends this submission has been *tested* against.
+# Only 'core' is verified by CI; others are author-claimed.
+backends:
+  - core
+
+# OPTIONAL — extra dependencies beyond Nengo.
+dependencies:
+  - numpy>=1.20
+  - matplotlib
+
+# beginner | intermediate | advanced — suggested audience level.
+complexity: intermediate
+
+# OPTIONAL — paper / citation link.
+# paper:
+#   citation: "Doe et al. (2025). My Paper Title. Journal of X."
+#   doi: 10.1234/example
+#   url: https://example.org/paper
+
+# OPTIONAL — names of related submissions for cross-linking.
+# related:
+#   - basal-ganglia
+#   - working-memory
+
+# OPTIONAL — for type=model, the headline script that reproduces the figure.
+# entry_point: examples/run.py

@@ -1,0 +1,32 @@
+name: controlled-oscillator
+type: model
+version: 0.1.0
+
+authors:
+  - name: Chris Eliasmith
+    affiliation: University of Waterloo, CNRG
+    orcid: 0000-0001-6308-7339
+
+license: GPL-2.0-or-later
+
+description: >
+  A 3D recurrent ensemble that implements a 2D oscillator whose angular
+  speed is gated by the third dimension. A separate input ensemble drives
+  that speed, demonstrating how one neural population can control the
+  dynamic regime of another.
+
+tags:
+  - oscillator
+  - dynamics
+  - control
+  - tutorial
+  - recurrent
+
+nengo_version: ">=3.2,<5"
+
+backends:
+  - core
+
+complexity: beginner
+
+entry_point: controlled_oscillator.py

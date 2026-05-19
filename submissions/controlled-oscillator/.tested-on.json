@@ -1,0 +1,7 @@
+{
+  "tested_at": "2026-05-19T21:08:11Z",
+  "python": "3.10.12",
+  "matrix": [
+    {"nengo": "4.1.0", "status": "pass", "details": "3 passed, numpy 1.26.4"}
+  ]
+}

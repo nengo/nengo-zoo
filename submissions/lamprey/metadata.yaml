@@ -1,0 +1,54 @@
+name: lamprey
+type: model
+version: 0.1.0
+
+authors:
+  - name: Michael Furlong
+    affiliation: University of Waterloo, CNRG
+  - name: Chris Eliasmith
+    affiliation: University of Waterloo, CNRG
+    orcid: 0000-0001-6308-7339
+
+license: GPL-2.0-or-later
+
+description: >
+  A spiking neural model of the lamprey locomotion control module from
+  the Neural Engineering Framework. A 3D damped-oscillator central pattern
+  generator (CPG) drives 10D muscle tensions through a basis-function
+  decoding, producing the traveling-wave swimming pattern characteristic
+  of lamprey undulation.
+
+tags:
+  - locomotion
+  - central-pattern-generator
+  - motor-control
+  - nef
+  - oscillator
+
+nengo_version: ">=3.2,<5"
+
+backends:
+  - core
+
+dependencies:
+  - numpy>=1.20
+  - scipy>=1.5
+  - matplotlib
+
+complexity: intermediate
+
+paper:
+  citation: "Eliasmith, C. & Anderson, C. H. (2003). Neural Engineering: Computation, Representation, and Dynamics in Neurobiological Systems. MIT Press."
+  url: https://mitpress.mit.edu/9780262550604/neural-engineering/
+
+related:
+  - basal-ganglia
+
+entry_point: examples/run.py
+
+# Library-API-primary submission; the NengoGUI variant is a thin shim over
+# `lamprey.build_model()` (see examples/nengogui/README.md). Declared here
+# so the validator can verify it and earn the nengogui-ready badge.
+nengogui:
+  script: examples/nengogui/lamprey_model.py
+  config: examples/nengogui/lamprey_model.py.cfg

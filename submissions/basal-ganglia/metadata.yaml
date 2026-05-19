@@ -1,0 +1,51 @@
+name: basal-ganglia
+type: network
+version: 0.1.0
+
+authors:
+  - name: Terry Stewart
+    affiliation: National Research Council Canada
+    orcid: 0000-0003-0673-8079
+  - name: Xuan Choo
+    affiliation: Applied Brain Research
+  - name: Chris Eliasmith
+    affiliation: University of Waterloo, CNRG
+    orcid: 0000-0001-6308-7339
+
+license: GPL-2.0-or-later
+
+description: >
+  A spiking neural model of the basal ganglia performing action selection,
+  implementing the direct and indirect pathways through StrD1, StrD2, STN,
+  GPe, and GPi nuclei. Drop-in subnetwork: feed in a utility vector, read
+  out a one-hot selection signal.
+
+tags:
+  - basal-ganglia
+  - action-selection
+  - motor-control
+  - spa
+  - subnetwork
+
+nengo_version: ">=3.2,<5"
+
+backends:
+  - core
+  - nengo_dl
+  - nengo_loihi
+
+dependencies:
+  - numpy>=1.20
+  - matplotlib
+
+complexity: intermediate
+
+paper:
+  citation: "Stewart, T. C., Choo, X., & Eliasmith, C. (2010). Dynamic behaviour of a spiking model of action selection in the basal ganglia. Proceedings of the 10th International Conference on Cognitive Modeling."
+  url: https://compneuro.uwaterloo.ca/publications/stewart2010.html
+
+related:
+  - working-memory
+  - thalamus
+
+# 'network' type: no entry_point — this is a subnetwork, not a standalone model.

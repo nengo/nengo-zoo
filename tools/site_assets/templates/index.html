@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+{% block title %}Nengo Zoo — browse{% endblock %}
+
+{% block content %}
+<p style="color: var(--fg-muted);">
+  Browse submitted Nengo models, components, and networks. Each entry is a
+  self-contained, version-pinned, CI-tested package — drop it into your own
+  project, or open it in NengoGUI to watch it run.
+  Got one of your own to share? <a href="{{ contributing_path }}">Read the submission guide →</a>
+</p>
+
+<div class="filter-bar">
+  <input id="filter-search" type="search" placeholder="Search name, description, tags…" autocomplete="off">
+
+  <div class="filter-chips" role="radiogroup" aria-label="Type filter">
+    <button type="button" class="filter-chip is-active" data-type-filter="all">all</button>
+    <button type="button" class="filter-chip" data-type-filter="component">component</button>
+    <button type="button" class="filter-chip" data-type-filter="network">network</button>
+    <button type="button" class="filter-chip" data-type-filter="model">model</button>
+  </div>
+
+  <label class="filter-toggle">
+    <input id="filter-gui" type="checkbox">
+    <span>NengoGUI-ready only</span>
+  </label>
+
+  <label class="filter-sort">
+    <span>Sort</span>
+    <select id="filter-sort">
+      <option value="name">name (A–Z)</option>
+      <option value="type">type</option>
+      <option value="complexity">complexity</option>
+    </select>
+  </label>
+
+  <div class="filter-status">
+    <span id="filter-count">{{ submissions|length }}</span> of {{ submissions|length }}
+    <button type="button" id="filter-clear" hidden>clear filters</button>
+  </div>
+</div>
+
+<div class="grid" id="card-grid">
+  {% for s in submissions %}
+  <a class="card"
+     href="{{ s.url }}"
+     data-name="{{ s.name|lower }}"
+     data-description="{{ s.description|lower }}"
+     data-tags="{{ s.tags|join(' ')|lower }}"
+     data-type="{{ s.type }}"
+     data-complexity="{{ s.complexity }}"
+     data-gui="{{ '1' if s.nengogui_ready else '0' }}">
+    <div class="card-head">
+      <h2 class="card-name">{{ s.name }}</h2>
+      <span class="badge badge-type badge-type-{{ s.type }}"
+            data-filter-action="type" data-filter-value="{{ s.type }}"
+            role="button" tabindex="0"
+            title="filter: type = {{ s.type }}">{{ s.type }}</span>
+    </div>
+    <p class="card-desc">{{ s.description }}</p>
+    <div class="card-meta">
+      <span class="badge badge-complexity">{{ s.complexity }}</span>
+      {% if s.nengogui_ready %}
+        <span class="badge badge-gui"
+              data-filter-action="gui" role="button" tabindex="0"
+              title="filter: NengoGUI-runnable only">GUI</span>
+      {% endif %}
+      {% if not s.ci_runnable %}
+        <span class="badge badge-ci-structural" title="CI verifies structure only; runtime is author-claimed">heavy</span>
+      {% endif %}
+      {% for t in s.tags[:4] %}
+        <span class="badge badge-tag"
+              data-filter-action="tag" data-filter-value="{{ t }}"
+              role="button" tabindex="0"
+              title="search: {{ t }}">{{ t }}</span>
+      {% endfor %}
+      {% if s.tags|length > 4 %}
+        <span class="badge badge-tag">+{{ s.tags|length - 4 }}</span>
+      {% endif %}
+    </div>
+  </a>
+  {% endfor %}
+</div>
+
+<p id="empty-state" hidden>No submissions match the current filters.</p>
+
+<script>
+(function () {
+  const grid       = document.getElementById('card-grid');
+  const cards      = Array.from(grid.querySelectorAll('.card'));
+  const searchInp  = document.getElementById('filter-search');
+  const guiInp     = document.getElementById('filter-gui');
+  const sortSel    = document.getElementById('filter-sort');
+  const chips      = Array.from(document.querySelectorAll('[data-type-filter]'));
+  const countEl    = document.getElementById('filter-count');
+  const emptyEl    = document.getElementById('empty-state');
+  const clearBtn   = document.getElementById('filter-clear');
+
+  const COMPLEXITY_RANK = { beginner: 0, intermediate: 1, advanced: 2 };
+  const DEFAULT_STATE   = { q: '', type: 'all', gui: false, sort: 'name' };
+
+  // ----- URL state plumbing -----
+  function readURL() {
+    const p = new URLSearchParams(window.location.search);
+    return {
+      q:    p.get('q')    || '',
+      type: p.get('type') || 'all',
+      gui:  p.get('gui')  === '1',
+      sort: p.get('sort') || 'name',
+    };
+  }
+  function writeURL(state) {
+    const p = new URLSearchParams();
+    if (state.q)              p.set('q',    state.q);
+    if (state.type !== 'all') p.set('type', state.type);
+    if (state.gui)            p.set('gui',  '1');
+    if (state.sort !== 'name') p.set('sort', state.sort);
+    const qs = p.toString();
+    const url = qs ? '?' + qs : window.location.pathname;
+    history.replaceState(null, '', url);
+  }
+
+  const state = readURL();
+
+  function anyFilterActive() {
+    return state.q !== '' || state.type !== 'all' || state.gui || state.sort !== 'name';
+  }
+
+  function sortKey(card) {
+    if (state.sort === 'type')       return card.dataset.type;
+    if (state.sort === 'complexity') return COMPLEXITY_RANK[card.dataset.complexity] ?? 99;
+    return card.dataset.name;
+  }
+
+  function applyAll() {
+    // sort
+    const ordered = [...cards].sort((a, b) => {
+      const ka = sortKey(a), kb = sortKey(b);
+      if (ka < kb) return -1;
+      if (ka > kb) return 1;
+      return a.dataset.name.localeCompare(b.dataset.name);  // stable tiebreak
+    });
+    ordered.forEach(c => grid.appendChild(c));
+
+    // filter
+    const q = state.q.trim();
+    let visible = 0;
+    cards.forEach(c => {
+      const haystack = [c.dataset.name, c.dataset.description, c.dataset.tags].join(' ');
+      const ok = (q === '' || haystack.includes(q))
+              && (state.type === 'all' || c.dataset.type === state.type)
+              && (!state.gui || c.dataset.gui === '1');
+      c.hidden = !ok;
+      if (ok) visible++;
+    });
+    countEl.textContent = visible;
+    emptyEl.hidden = visible !== 0;
+    clearBtn.hidden = !anyFilterActive();
+
+    writeURL(state);
+  }
+
+  // ----- Hydrate UI from URL state -----
+  searchInp.value = state.q;
+  guiInp.checked  = state.gui;
+  sortSel.value   = state.sort;
+  chips.forEach(c => c.classList.toggle('is-active', c.dataset.typeFilter === state.type));
+
+  // ----- Event wiring -----
+  searchInp.addEventListener('input',  e => { state.q   = e.target.value.toLowerCase(); applyAll(); });
+  guiInp.addEventListener('change',    e => { state.gui = e.target.checked;             applyAll(); });
+  sortSel.addEventListener('change',   e => { state.sort = e.target.value;              applyAll(); });
+
+  chips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      chips.forEach(c => c.classList.remove('is-active'));
+      chip.classList.add('is-active');
+      state.type = chip.dataset.typeFilter;
+      applyAll();
+    });
+  });
+
+  clearBtn.addEventListener('click', () => {
+    Object.assign(state, DEFAULT_STATE);
+    searchInp.value = ''; guiInp.checked = false; sortSel.value = 'name';
+    chips.forEach(c => c.classList.toggle('is-active', c.dataset.typeFilter === 'all'));
+    applyAll();
+    searchInp.focus();
+  });
+
+  // ----- Clickable pills (delegated) -----
+  // Pills inside the card grid are spans with data-filter-action. We
+  // intercept the click *before* the surrounding <a class="card"> default
+  // navigation fires, then apply the corresponding filter instead.
+  function handlePillActivation(e, pill) {
+    e.preventDefault();
+    e.stopPropagation();
+    const action = pill.dataset.filterAction;
+    const value  = pill.dataset.filterValue;
+    if (action === 'type') {
+      state.type = value;
+      chips.forEach(c => c.classList.toggle('is-active', c.dataset.typeFilter === value));
+    } else if (action === 'tag') {
+      state.q = value.toLowerCase();
+      searchInp.value = value;
+    } else if (action === 'gui') {
+      state.gui = true;
+      guiInp.checked = true;
+    }
+    applyAll();
+  }
+  grid.addEventListener('click', e => {
+    const pill = e.target.closest('[data-filter-action]');
+    if (pill && grid.contains(pill)) handlePillActivation(e, pill);
+  });
+  // Keyboard activation (Enter / Space) for accessibility.
+  grid.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const pill = e.target.closest('[data-filter-action]');
+    if (pill && grid.contains(pill)) handlePillActivation(e, pill);
+  });
+
+  // Initial render with whatever URL state we started with.
+  applyAll();
+})();
+</script>
+{% endblock %}

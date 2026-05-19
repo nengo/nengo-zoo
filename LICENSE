@@ -1,0 +1,20 @@
+SPDX-License-Identifier: GPL-2.0-or-later
+
+NengoZoo
+Copyright (C) 2026 The NengoZoo contributors.
+
+NengoZoo as a whole is distributed under the terms of the GNU General Public
+License version 2 (GPLv2) or, at your option, any later version. This matches
+the license of the Nengo library itself.
+
+Full license text:
+  https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
+
+Each submission under `submissions/` carries its own LICENSE file. Submissions
+may be distributed under GPLv2 (the default) or any other GPL-compatible
+license declared in the submission's `metadata.yaml`.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the full license text at the URL above for
+more details.

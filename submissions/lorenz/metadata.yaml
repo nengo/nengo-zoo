@@ -1,0 +1,36 @@
+name: lorenz
+type: model
+version: 0.1.0
+
+authors:
+  - name: Chris Eliasmith
+    affiliation: University of Waterloo, CNRG
+    orcid: 0000-0001-6308-7339
+
+license: GPL-2.0-or-later
+
+description: >
+  A spiking neural implementation of the Lorenz "butterfly" chaotic attractor.
+  A single 3D ensemble with recurrent connections implements the differential
+  equations of the canonical Lorenz system, producing the characteristic
+  two-lobe trajectory.
+
+tags:
+  - attractor
+  - chaos
+  - dynamics
+  - tutorial
+  - recurrent
+
+nengo_version: ">=3.2,<5"
+
+backends:
+  - core
+
+complexity: beginner
+
+paper:
+  citation: "Eliasmith, C. (2005). A unified approach to building and controlling spiking attractor networks. Neural Computation, 7(6), 1276-1314."
+  url: https://compneuro.uwaterloo.ca/publications/eliasmith2005b.html
+
+entry_point: lorenz.py

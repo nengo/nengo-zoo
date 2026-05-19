@@ -1,0 +1,45 @@
+name: lmu
+type: model
+version: 0.1.0
+
+authors:
+  - name: Aaron R. Voelker
+    affiliation: Applied Brain Research / Waterloo, CNRG
+  - name: Ivana Kajić
+    affiliation: University of Waterloo, CNRG
+  - name: Chris Eliasmith
+    affiliation: University of Waterloo, CNRG
+    orcid: 0000-0001-6308-7339
+
+license: GPL-2.0-or-later
+
+description: >
+  A Legendre Memory Unit in Nengo — a recurrent layer that optimally
+  represents a sliding window of a continuous-time signal using Legendre
+  polynomials. Demonstrated learning a fixed-time-delay function via PES
+  on a downstream spiking ensemble.
+
+tags:
+  - lmu
+  - memory
+  - recurrent
+  - learning
+  - pes
+
+nengo_version: ">=3.2,<5"
+
+backends:
+  - core
+
+dependencies:
+  - numpy>=1.20
+  - scipy>=1.5
+  - matplotlib
+
+complexity: advanced
+
+paper:
+  citation: "Voelker, A. R., Kajić, I., & Eliasmith, C. (2019). Legendre Memory Units: Continuous-time representation in recurrent neural networks. In NeurIPS 2019."
+  url: https://papers.nips.cc/paper_files/paper/2019/hash/952285b9b7e7a1be5aa7849f32ffff05-Abstract.html
+
+entry_point: lmu.py

@@ -1,0 +1,220 @@
+name: NengoZoo — Tier-1 Review
+
+on:
+  pull_request:
+    paths:
+      - "submissions/**"
+      - "schema/**"
+      - "tools/**"
+      - ".github/workflows/review.yml"
+  push:
+    branches: [main]
+    paths:
+      - "submissions/**"
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      submissions: ${{ steps.changes.outputs.submissions }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Identify changed submissions
+        id: changes
+        run: |
+          # On PRs, diff against the merge base.
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            base="${{ github.event.pull_request.base.sha }}"
+          else
+            base="HEAD~1"
+          fi
+
+          dirs=$(git diff --name-only "$base"...HEAD \
+            | awk -F/ '$1=="submissions" && NF>=2 { print $2 }' \
+            | sort -u \
+            | jq -R . | jq -s -c .)
+
+          # Fallback: if nothing matched (e.g. first commit), validate all submissions.
+          if [ "$dirs" = "[]" ]; then
+            dirs=$(ls -1 submissions 2>/dev/null | jq -R . | jq -s -c .)
+          fi
+
+          echo "submissions=$dirs" >> "$GITHUB_OUTPUT"
+          echo "Will review: $dirs"
+
+  review:
+    needs: detect
+    if: ${{ needs.detect.outputs.submissions != '[]' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        submission: ${{ fromJson(needs.detect.outputs.submissions) }}
+        # Nengo versions to verify against. The matrix runs every combination;
+        # cells where the version falls outside the submission's declared
+        # `nengo_version` range will skip themselves (handled below).
+        nengo-version: ["3.2.0", "4.1.0"]
+        include:
+          # NumPy 2 requires Nengo 4+. Pin NumPy<2 for older Nengo cells.
+          - nengo-version: "3.2.0"
+            numpy-pin: "numpy<2"
+          - nengo-version: "4.1.0"
+            numpy-pin: "numpy"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install validation tooling + pinned Nengo
+        run: |
+          pip install --upgrade pip
+          pip install pyyaml "jsonschema>=4.18" pytest packaging
+          pip install "nengo==${{ matrix.nengo-version }}" "${{ matrix.numpy-pin }}"
+
+      - name: Skip cell if version outside declared range or ci_runnable=false
+        id: range
+        working-directory: submissions/${{ matrix.submission }}
+        run: |
+          python - <<'PY'
+          import yaml, os
+          from packaging.specifiers import SpecifierSet
+          from packaging.version import Version
+          meta        = yaml.safe_load(open('metadata.yaml'))
+          spec        = SpecifierSet(meta['nengo_version'])
+          ci_runnable = meta.get('ci_runnable', True)
+          v           = Version("${{ matrix.nengo-version }}")
+          in_range    = v in spec
+          run_runtime = in_range and ci_runnable
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f"in_range={'true' if in_range else 'false'}\n")
+              f.write(f"run_runtime={'true' if run_runtime else 'false'}\n")
+              f.write(f"ci_runnable={'true' if ci_runnable else 'false'}\n")
+          msg = f"Nengo {v} {'in' if in_range else 'OUTSIDE'} declared range {spec}"
+          if not ci_runnable:
+              msg += "; ci_runnable=false → structure validation only"
+          print(msg)
+          PY
+
+      - name: Validate structure & metadata
+        if: steps.range.outputs.in_range == 'true'
+        run: python tools/validate_submission.py "submissions/${{ matrix.submission }}"
+
+      - name: Install submission requirements
+        if: steps.range.outputs.run_runtime == 'true'
+        working-directory: submissions/${{ matrix.submission }}
+        # --upgrade-strategy only-if-needed so the matrix-pinned nengo isn't
+        # bumped by the requirements.txt range.
+        run: pip install --upgrade-strategy only-if-needed -r requirements.txt
+
+      - name: Clear Nengo decoder cache
+        if: steps.range.outputs.run_runtime == 'true'
+        # Stale pickled decoder caches reference internal NumPy module paths
+        # (e.g. `numpy._core.numeric` in NumPy 2.x) that don't exist in older
+        # NumPy. Clearing before each cell ensures cross-version hygiene if a
+        # cache ever gets reused (e.g. via actions/cache or rerun-with-cache).
+        run: |
+          rm -rf ~/.cache/nengo "$XDG_CACHE_HOME/nengo" 2>/dev/null || true
+
+      - name: Resolve entry point from metadata
+        if: steps.range.outputs.run_runtime == 'true'
+        id: entry
+        working-directory: submissions/${{ matrix.submission }}
+        run: |
+          ep=$(python -c "import yaml; d=yaml.safe_load(open('metadata.yaml')); print(d.get('entry_point','examples/example_usage.py'))")
+          echo "path=$ep" >> "$GITHUB_OUTPUT"
+          echo "Entry point: $ep"
+
+      - name: Run entry point
+        if: steps.range.outputs.run_runtime == 'true'
+        working-directory: submissions/${{ matrix.submission }}
+        env:
+          PYTHONPATH: src:.
+          MPLBACKEND: Agg
+        run: |
+          timeout 120 python "${{ steps.entry.outputs.path }}"
+
+      - name: Run tests
+        if: steps.range.outputs.run_runtime == 'true'
+        working-directory: submissions/${{ matrix.submission }}
+        env:
+          PYTHONPATH: src:.
+          MPLBACKEND: Agg
+        run: pytest tests/ -v
+
+      - name: Write tested-on result for this cell
+        if: always() && steps.range.outputs.in_range == 'true'
+        working-directory: submissions/${{ matrix.submission }}
+        run: |
+          mkdir -p .tested-on-cells
+          status="${{ job.status == 'success' && 'pass' || 'fail' }}"
+          cat > ".tested-on-cells/${{ matrix.nengo-version }}.json" <<EOF
+          {"nengo": "${{ matrix.nengo-version }}", "status": "$status"}
+          EOF
+
+      - name: Upload per-cell result
+        if: always() && steps.range.outputs.in_range == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tested-on-${{ matrix.submission }}-${{ matrix.nengo-version }}
+          path: submissions/${{ matrix.submission }}/.tested-on-cells/
+
+  aggregate-tested-on:
+    needs: review
+    if: always() && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write          # needed to commit the refreshed .tested-on.json back
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+          pattern: tested-on-*
+          merge-multiple: false
+
+      - name: Aggregate per-cell results into .tested-on.json
+        run: |
+          python - <<'PY'
+          import json, os, datetime
+          from pathlib import Path
+
+          by_sub: dict[str, list[dict]] = {}
+          for art_dir in Path('artifacts').glob('tested-on-*'):
+              # name shape: tested-on-<submission>-<nengo-version>
+              parts = art_dir.name.split('-')
+              # submission name may itself contain dashes; rebuild
+              sub = '-'.join(parts[2:-1])
+              for cell_file in art_dir.glob('*.json'):
+                  cell = json.loads(cell_file.read_text())
+                  by_sub.setdefault(sub, []).append(cell)
+
+          ts = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+          for sub, cells in by_sub.items():
+              cells.sort(key=lambda c: c['nengo'])
+              out_path = Path('submissions') / sub / '.tested-on.json'
+              out_path.write_text(json.dumps({
+                  "tested_at": ts,
+                  "matrix": cells,
+              }, indent=2) + "\n")
+              print(f"Wrote {out_path}")
+          PY
+
+      - name: Commit aggregated tested-on results
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add submissions/**/.tested-on.json
+          if git diff --cached --quiet; then
+            echo "no changes to commit"
+          else
+            git commit -m "CI: refresh tested-on.json"
+            git push
+          fi

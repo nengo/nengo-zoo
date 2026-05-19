@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}NengoZoo{% endblock %}</title>
+  <link rel="stylesheet" href="{{ css_path }}">
+  <link rel="stylesheet" href="{{ code_css_path }}">
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-title" href="{{ home_path }}" aria-label="NengoZoo — home">
+        <img class="site-logo" src="{{ logo_path }}" alt="NengoZoo">
+      </a>
+      <p class="site-tagline">a community library of Nengo models, components &amp; networks</p>
+      <nav class="site-nav">
+        <a class="site-nav-cta" href="{{ contributing_path }}">Submit a model →</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    {{ submission_count }} submission{{ "s" if submission_count != 1 else "" }} ·
+    generated {{ generated_at }}
+  </footer>
+</body>
+</html>
