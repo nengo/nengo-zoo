@@ -6,6 +6,15 @@ name: Build & deploy site
 on:
   push:
     branches: [main]
+  # Rebuild after the Tier-1 review workflow finishes. review.yml's
+  # aggregate-tested-on job commits .tested-on.json back to main using the
+  # default GITHUB_TOKEN, and pushes made with that token DO NOT trigger
+  # other workflows. Without this trigger, the site is built before the
+  # tested-on file exists, then never rebuilt to render the badge.
+  workflow_run:
+    workflows: ["NengoZoo — Tier-1 Review"]
+    branches: [main]
+    types: [completed]
   workflow_dispatch:       # allow manual rebuilds from the Actions tab
 
 permissions:
@@ -20,6 +29,10 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # If we got here via workflow_run, only proceed when the upstream review
+    # workflow actually succeeded — no point deploying a site that reflects
+    # a failed CI run.
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v4
 
