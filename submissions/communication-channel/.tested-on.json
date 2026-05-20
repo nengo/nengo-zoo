@@ -1,0 +1,13 @@
+{
+  "tested_at": "2026-05-20T00:06:22Z",
+  "matrix": [
+    {
+      "nengo": "3.2.0",
+      "status": "pass"
+    },
+    {
+      "nengo": "4.1.0",
+      "status": "pass"
+    }
+  ]
+}
