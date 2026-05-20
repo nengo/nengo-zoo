@@ -170,6 +170,7 @@ A maintainer (currently Terry Stewart, with delegates as the zoo grows) will rev
 ## After it's merged
 
 - Your submission gets a permanent URL on the zoo site, a downloadable zip, and a "Tested on Nengo X.Y.Z" badge for each version CI verified.
+- A GitHub Discussion thread is auto-created for your submission in the "Submissions" category, and its number is written back to your `metadata.yaml` by the bot. The thread is where users ask questions, leave comments, and 👍 your work.
 - If you've enabled the Zenodo integration on your fork, tagged releases will mint a DOI you can cite.
 - Future versions are easy: bump `version:` in metadata, update the code, open a follow-up PR.
 
@@ -188,7 +189,10 @@ Most often: stale Nengo decoder cache from a previous environment. Run `rm -rf ~
 Bump `version:` in `metadata.yaml`, make your changes, open a PR. The old version's zip stays available; users can pin to it if they need to.
 
 **"How do people 'star' my submission?"**
-Each submission has a GitHub Discussions thread; the 👍 count on the top post is the star count. (Not enabled in the prototype yet; landing as part of the v1 launch.)
+Each submission has a GitHub Discussions thread (auto-created when your PR merges, in the "Submissions" category). The 👍 count on the top-level post is the star count; replies are comments. Both are surfaced on your submission's detail page on the zoo site. The static site refreshes those counts on every merge and every six hours, so live values always live on GitHub — the site's numbers are a snapshot of the most recent rebuild.
+
+**"Can I add the `discussion:` field to my `metadata.yaml` myself?"**
+You don't need to. The bot writes the discussion number back in a follow-up commit after your PR merges. The schema accepts the field for the bot's sake; it's not something you fill in by hand.
 
 ---
 

@@ -58,6 +58,18 @@
       {% if s.entry_point %}<dt>Entry</dt><dd><code>{{ s.entry_point }}</code></dd>{% endif %}
     </dl>
 
+    {% if s.discussion_signal %}
+    <h3>Community</h3>
+    <a class="discuss-btn" href="{{ s.discussion_signal.url }}" target="_blank" rel="noopener">
+      <span class="discuss-counts">
+        <span title="thumbs-up reactions">👍 {{ s.discussion_signal.stars }}</span>
+        <span title="replies">💬 {{ s.discussion_signal.comments }}</span>
+      </span>
+      <span class="discuss-cta">Discuss on GitHub →</span>
+    </a>
+    <p class="tested-on-meta">Counts refresh on each site rebuild.</p>
+    {% endif %}
+
     {% if s.tested_on and s.tested_on.matrix %}
     <h3>Tested on</h3>
     <ul class="tested-on">

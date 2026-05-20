@@ -561,6 +561,53 @@ a.badge:hover { text-decoration: none; }
 /* Sidebar variant of the CI-structural badge (when no matrix exists). */
 .ci-structural-note { margin: 0.1rem 0 0; }
 
+/* ---------- Community block (sidebar) ----------
+ * Visual weight is deliberately quiet — this is a signal, not a CTA. We
+ * still want the user to be able to click through to discuss, so the
+ * whole block is a hover-able link.
+ */
+.discuss-btn {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--fg);
+  text-decoration: none;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+.discuss-btn:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  text-decoration: none;
+}
+.discuss-counts {
+  display: flex;
+  gap: 0.9rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+.discuss-counts span { color: var(--fg); }
+.discuss-cta {
+  font-size: 0.78rem;
+  color: var(--accent);
+}
+
+/* ---------- Card community badge (index) ----------
+ * Subtle counts tucked into card-meta — same row as filter pills but
+ * styled without a chip background so it doesn't read as clickable.
+ */
+.card-community {
+  display: inline-flex;
+  gap: 0.5rem;
+  margin-left: auto;          /* push to right edge of card-meta */
+  font-size: 0.74rem;
+  color: var(--fg-faint);
+  white-space: nowrap;
+}
+
 /* ---------- Figures gallery ---------- */
 
 .figures {

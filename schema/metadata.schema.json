@@ -126,6 +126,11 @@
         }
       },
       "description": "Declares an explicit NengoGUI variant when the canonical entry_point isn't itself a GUI script. Earns the 'nengogui-ready' badge if the script imports cleanly and exposes a top-level nengo.Network."
+    },
+    "discussion": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "GitHub Discussion number for this submission's community thread. Auto-populated on merge by the discussion-bot workflow; do not set by hand. The site fetches reaction (👍) and reply counts from this thread at build time to render the community-signal badges."
     }
   }
 }

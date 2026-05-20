@@ -16,9 +16,16 @@ on:
     branches: [main]
     types: [completed]
   workflow_dispatch:       # allow manual rebuilds from the Actions tab
+  # Refresh on a 6-hour cadence so star/comment counts on the live site
+  # don't drift too far from the truth during quiet periods (no merges /
+  # no CI runs). On busy days the merge- and workflow_run-triggers do
+  # the work, and this cron is effectively a no-op deploy.
+  schedule:
+    - cron: "0 */6 * * *"
 
 permissions:
   contents: read
+  discussions: read        # build_site.py queries Discussions via GraphQL
   pages: write
   id-token: write          # required by actions/deploy-pages
 
@@ -53,6 +60,12 @@ jobs:
                       "nengo>=4,<5" numpy scipy matplotlib
 
       - name: Build site
+        # GITHUB_TOKEN lets build_site.py call the GraphQL API for
+        # per-submission discussion stars + reply counts. GITHUB_REPOSITORY
+        # is set automatically by Actions and tells the script which repo
+        # to query. Both fall back gracefully (no badges) if absent.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python tools/build_site.py
 
       - name: Upload Pages artifact

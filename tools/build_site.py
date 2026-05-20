@@ -21,8 +21,12 @@ from __future__ import annotations
 
 import argparse
 import datetime
+import json
+import os
 import shutil
 import sys
+import urllib.error
+import urllib.request
 import zipfile
 from pathlib import Path
 
@@ -77,6 +81,123 @@ def format_size(n_bytes: int) -> str:
             return f"{n_bytes:.0f} {unit}" if unit == "B" else f"{n_bytes:.1f} {unit}"
         n_bytes /= 1024
     return f"{n_bytes:.1f} GB"
+
+
+# --- Discussion (community-signal) fetch -----------------------------------
+# At build time we ask GitHub's GraphQL API for the 👍 reaction count and
+# the reply count of each submission's Discussion thread, then bake those
+# numbers into the rendered pages. The site is static, so counts are only
+# fresh as of the last build — pages.yml runs on every push to main, after
+# each Tier-1 CI run, and on a cron schedule to keep staleness bounded even
+# during quiet periods.
+#
+# Repo coordinates are taken from GITHUB_REPOSITORY (set automatically inside
+# Actions) and fall back to env-vars / defaults so local rebuilds still work.
+# A missing or unreadable token degrades to "no badges" rather than failing
+# the whole build — community signal is nice-to-have, not load-bearing.
+
+GITHUB_GRAPHQL_URL = "https://api.github.com/graphql"
+
+DISCUSSION_QUERY = """
+query($owner: String!, $name: String!, $number: Int!) {
+  repository(owner: $owner, name: $name) {
+    discussion(number: $number) {
+      url
+      comments { totalCount }
+      reactionGroups {
+        content
+        reactors { totalCount }
+      }
+    }
+  }
+}
+"""
+
+
+def _resolve_repo_slug() -> tuple[str, str] | None:
+    """Determine (owner, name) of the host repo for GraphQL queries."""
+    slug = os.environ.get("GITHUB_REPOSITORY")
+    if slug and "/" in slug:
+        owner, name = slug.split("/", 1)
+        return owner, name
+    # Allow explicit overrides for local builds.
+    owner = os.environ.get("NENGOZOO_REPO_OWNER")
+    name = os.environ.get("NENGOZOO_REPO_NAME")
+    if owner and name:
+        return owner, name
+    return None
+
+
+def fetch_discussion_signal(discussion_number: int,
+                            owner: str, name: str,
+                            token: str) -> dict | None:
+    """Return {url, stars, comments} for one Discussion, or None on any failure."""
+    payload = json.dumps({
+        "query": DISCUSSION_QUERY,
+        "variables": {"owner": owner, "name": name, "number": discussion_number},
+    }).encode("utf-8")
+    req = urllib.request.Request(
+        GITHUB_GRAPHQL_URL,
+        data=payload,
+        headers={
+            "Authorization": f"bearer {token}",
+            "Content-Type": "application/json",
+            "User-Agent": "nengozoo-build-site",
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            body = json.loads(resp.read())
+    except (urllib.error.URLError, json.JSONDecodeError, TimeoutError) as e:
+        print(f"  WARN: discussion #{discussion_number} fetch failed ({e}); skipping signal")
+        return None
+
+    disc = (body.get("data") or {}).get("repository", {}).get("discussion")
+    if not disc:
+        # Could be: discussion deleted, number wrong, or insufficient perms.
+        errors = body.get("errors")
+        if errors:
+            print(f"  WARN: discussion #{discussion_number}: {errors[0].get('message', errors)}")
+        else:
+            print(f"  WARN: discussion #{discussion_number} not found")
+        return None
+
+    stars = 0
+    for grp in disc.get("reactionGroups") or []:
+        if grp.get("content") == "THUMBS_UP":
+            stars = (grp.get("reactors") or {}).get("totalCount", 0)
+            break
+    return {
+        "url": disc["url"],
+        "stars": stars,
+        "comments": (disc.get("comments") or {}).get("totalCount", 0),
+    }
+
+
+def fetch_all_discussion_signals(submissions: list[dict]) -> None:
+    """Annotate each submission dict with a 'discussion_signal' field (or None)."""
+    # Default-attach None so templates can render unconditionally.
+    for s in submissions:
+        s["discussion_signal"] = None
+
+    repo = _resolve_repo_slug()
+    if repo is None:
+        print("  (no GITHUB_REPOSITORY set; skipping discussion signal fetch)")
+        return
+    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    if not token:
+        print("  (no GITHUB_TOKEN set; skipping discussion signal fetch)")
+        return
+
+    owner, name = repo
+    with_discussions = [s for s in submissions if s.get("discussion")]
+    if not with_discussions:
+        return
+    print(f"  fetching discussion signal for {len(with_discussions)} submission(s)…")
+    for s in with_discussions:
+        signal = fetch_discussion_signal(s["discussion"], owner, name, token)
+        if signal:
+            s["discussion_signal"] = signal
 
 
 def first_line_after_h1(md_text: str) -> str:
@@ -153,6 +274,11 @@ def load_submission(sub_dir: Path) -> dict:
         "related":        meta.get("related", []),
         "nengogui_ready": gui_ready,
         "tested_on":      tested_on,
+        # GitHub Discussion number. The discussion_signal dict (stars,
+        # comments, url) is attached later by fetch_all_discussion_signals,
+        # since fetching is a build-wide concern that wants a single token
+        # check and would be wasteful per-submission.
+        "discussion":     meta.get("discussion"),
         "readme_md":      readme_md,
         "figures_src":    figures,        # absolute source paths
         "sub_dir":        sub_dir,
@@ -188,6 +314,10 @@ def render(out_root: Path) -> int:
         except Exception as e:
             print(f"  ERROR loading {sub_dir.name}: {type(e).__name__}: {e}")
             return 1
+
+    # ----- Pull community-signal counts (one network round-trip per submission
+    #       that has a discussion number; silently no-ops without a token).
+    fetch_all_discussion_signals(submissions)
 
     # ----- Set up Jinja2 -----
     env = Environment(

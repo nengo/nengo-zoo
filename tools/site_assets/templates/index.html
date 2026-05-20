@@ -76,6 +76,12 @@
       {% if s.tags|length > 4 %}
         <span class="badge badge-tag">+{{ s.tags|length - 4 }}</span>
       {% endif %}
+      {% if s.discussion_signal %}
+        <span class="card-community" title="community signal — counts refresh on rebuild">
+          <span>👍 {{ s.discussion_signal.stars }}</span>
+          <span>💬 {{ s.discussion_signal.comments }}</span>
+        </span>
+      {% endif %}
     </div>
   </a>
   {% endfor %}
