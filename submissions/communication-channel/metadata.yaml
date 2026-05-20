@@ -27,3 +27,4 @@ backends:
 complexity: beginner
 
 entry_point: communication_channel.py
+discussion: 10

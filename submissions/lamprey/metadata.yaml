@@ -52,3 +52,4 @@ entry_point: examples/run.py
 nengogui:
   script: examples/nengogui/lamprey_model.py
   config: examples/nengogui/lamprey_model.py.cfg
+discussion: 12
