@@ -11,6 +11,9 @@ on:
     branches: [main]
     paths:
       - "submissions/**/metadata.yaml"
+  workflow_dispatch:       # manual trigger — useful for backfilling tags
+                           # after the workflow itself is first added, or
+                           # for re-running after a transient failure.
 
 permissions:
   contents: write     # needed to push tags back to the repo
