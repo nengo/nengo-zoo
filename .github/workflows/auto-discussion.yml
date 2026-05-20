@@ -1,0 +1,61 @@
+name: Auto-create discussions
+
+# For every submission that doesn't yet have a `discussion:` number in its
+# metadata.yaml, create a GitHub Discussion thread (in the "Submissions"
+# category) and commit the resulting number back. The site's build step then
+# fetches that thread's 👍 / reply counts to render the community badges.
+#
+# Two ways in:
+#   * push to main touching a submission's metadata.yaml — handles brand-new
+#     submissions as they merge.
+#   * workflow_dispatch — a manual run that backfills every existing
+#     submission at once (the script is idempotent: it only creates threads
+#     for submissions still missing a number).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "submissions/**/metadata.yaml"
+  workflow_dispatch:
+
+permissions:
+  contents: write       # commit the discussion numbers back to metadata.yaml
+  discussions: write    # create the Discussion threads
+
+# Don't let two runs race on the same metadata files / discussion creation.
+concurrency:
+  group: "auto-discussion"
+  cancel-in-progress: false
+
+jobs:
+  sync-discussions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - run: pip install pyyaml
+
+      - name: Create missing discussions + write numbers back
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DISCUSSION_CATEGORY: Submissions
+        run: python tools/sync_discussions.py
+
+      - name: Commit any newly-written discussion numbers
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add submissions/**/metadata.yaml
+          if git diff --cached --quiet; then
+            echo "No new discussion numbers to commit."
+          else
+            git commit -m "CI: link submissions to their discussion threads"
+            git push
+          fi

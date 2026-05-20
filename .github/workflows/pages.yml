@@ -12,7 +12,7 @@ on:
   # other workflows. Without this trigger, the site is built before the
   # tested-on file exists, then never rebuilt to render the badge.
   workflow_run:
-    workflows: ["NengoZoo — Tier-1 Review"]
+    workflows: ["NengoZoo — Tier-1 Review", "Auto-create discussions"]
     branches: [main]
     types: [completed]
   workflow_dispatch:       # allow manual rebuilds from the Actions tab
