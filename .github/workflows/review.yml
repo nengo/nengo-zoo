@@ -115,6 +115,54 @@ jobs:
         if: steps.range.outputs.in_range == 'true'
         run: python tools/validate_submission.py "submissions/${{ matrix.submission }}"
 
+      - name: Check version was bumped if files changed
+        # Compare this PR's metadata.yaml version against the version on
+        # main. If non-metadata files changed within the submission and the
+        # version field didn't move, fail with a clear message. Brand-new
+        # submissions are exempt (no main baseline to compare against).
+        if: steps.range.outputs.in_range == 'true' && github.event_name == 'pull_request'
+        working-directory: submissions/${{ matrix.submission }}
+        run: |
+          python - <<'PY'
+          import subprocess, sys, yaml, os
+          sub = "${{ matrix.submission }}"
+          base_sha = "${{ github.event.pull_request.base.sha }}"
+
+          # PR's version (working copy)
+          new_meta = yaml.safe_load(open("metadata.yaml", encoding="utf-8"))
+          new_v = new_meta["version"]
+
+          # main's version (or None if submission is new)
+          try:
+              old_yaml = subprocess.check_output(
+                  ["git", "show", f"{base_sha}:submissions/{sub}/metadata.yaml"],
+                  text=True, stderr=subprocess.DEVNULL,
+              )
+              old_v = yaml.safe_load(old_yaml)["version"]
+          except subprocess.CalledProcessError:
+              print(f"[OK] {sub}: new submission (no baseline on main)")
+              sys.exit(0)
+
+          # Diff this submission's files against main
+          diff = subprocess.check_output(
+              ["git", "diff", "--name-only",
+               f"{base_sha}...HEAD", "--", f"submissions/{sub}/"],
+              text=True,
+          ).strip().splitlines()
+
+          if not diff:
+              print(f"[OK] {sub}: no files changed")
+              sys.exit(0)
+          if old_v == new_v:
+              print(f"::error::Files in submissions/{sub}/ changed "
+                    f"but version is still {new_v}. Bump it in metadata.yaml.")
+              print(f"Changed files:")
+              for f in diff:
+                  print(f"  {f}")
+              sys.exit(1)
+          print(f"[OK] {sub}: version bumped {old_v} → {new_v}")
+          PY
+
       - name: Install submission requirements
         if: steps.range.outputs.run_runtime == 'true'
         working-directory: submissions/${{ matrix.submission }}
@@ -173,6 +221,9 @@ jobs:
         with:
           name: tested-on-${{ matrix.submission }}-${{ matrix.nengo-version }}
           path: submissions/${{ matrix.submission }}/.tested-on-cells/
+          # The directory starts with a dot, so upload-artifact@v4 treats its
+          # contents as hidden and silently skips them unless we opt in.
+          include-hidden-files: true
 
   aggregate-tested-on:
     needs: review

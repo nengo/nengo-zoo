@@ -1,0 +1,69 @@
+name: Auto-tag submissions
+
+# Whenever a submission's metadata.yaml changes on main, create (and push) a
+# git tag of the form `<name>-v<version>` if one doesn't already exist.
+# These tags are the substrate the future per-version-zip / Zenodo features
+# will sit on top of — every merged version has a permanent recoverable
+# reference even before those features land.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "submissions/**/metadata.yaml"
+
+permissions:
+  contents: write     # needed to push tags back to the repo
+
+jobs:
+  tag-new-versions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0           # need history so we can detect "first time we see this version"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - run: pip install pyyaml
+
+      - name: Tag any submission whose version is new
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          python - <<'PY'
+          import subprocess, yaml, sys
+          from pathlib import Path
+
+          # Look at every submission folder; for each, derive its target tag.
+          # If the tag doesn't exist yet, create it pointing at the current
+          # commit. Skips submissions that haven't changed (their tag already
+          # exists from an earlier run).
+          existing_tags = set(subprocess.check_output(
+              ["git", "tag", "--list"], text=True
+          ).split())
+
+          to_push = []
+          for meta_path in sorted(Path("submissions").glob("*/metadata.yaml")):
+              meta = yaml.safe_load(meta_path.read_text(encoding="utf-8"))
+              name = meta["name"]
+              version = meta["version"]
+              tag = f"{name}-v{version}"
+              if tag in existing_tags:
+                  print(f"  skip: {tag} already tagged")
+                  continue
+              print(f"  tagging: {tag}")
+              subprocess.check_call(["git", "tag", "-a", tag, "-m", f"{name} {version}"])
+              to_push.append(tag)
+
+          if not to_push:
+              print("Nothing new to tag.")
+              sys.exit(0)
+
+          subprocess.check_call(["git", "push", "origin"] + to_push)
+          print(f"Pushed {len(to_push)} new tag(s): {', '.join(to_push)}")
+          PY
