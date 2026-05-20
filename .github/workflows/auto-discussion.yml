@@ -18,11 +18,12 @@ on:
     paths:
       - "submissions/**/metadata.yaml"
   workflow_dispatch:
-    inputs:
-      refresh_bodies:
-        description: "Also rewrite existing thread bodies to the current template (overwrites manual edits)"
-        type: boolean
-        default: false
+    # NOTE: there is intentionally no "refresh bodies" input here. Rewriting an
+    # existing discussion body needs the updateDiscussion mutation, which the
+    # built-in GITHUB_TOKEN is NOT permitted to call ("Resource not accessible
+    # by integration") — even though it CAN create discussions. The script's
+    # --refresh-bodies flag still exists for anyone running it locally with a
+    # PAT that has Discussions: read/write.
 
 permissions:
   contents: write       # commit the discussion numbers back to metadata.yaml
@@ -51,9 +52,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DISCUSSION_CATEGORY: Submissions
-        run: |
-          python tools/sync_discussions.py \
-            ${{ github.event.inputs.refresh_bodies == 'true' && '--refresh-bodies' || '' }}
+        run: python tools/sync_discussions.py
 
       - name: Commit any newly-written discussion numbers
         run: |

@@ -156,7 +156,11 @@ def main() -> int:
         "--refresh-bodies", action="store_true",
         help="Also rewrite the body text of submissions that ALREADY have a "
              "discussion, bringing them in line with the current template. "
-             "Use after changing the body wording. Overwrites manual edits.",
+             "Use after changing the body wording. Overwrites manual edits. "
+             "NOTE: needs a token allowed to call updateDiscussion — the "
+             "built-in Actions GITHUB_TOKEN is NOT (it returns 'Resource not "
+             "accessible by integration'). Run locally with a PAT that has "
+             "Discussions: read/write.",
     )
     args = parser.parse_args()
 
