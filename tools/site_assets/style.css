@@ -460,8 +460,10 @@ a.badge:hover { text-decoration: none; }
 /* ---------- Sidebar (detail page) ---------- */
 
 .sidebar {
-  position: sticky;
-  top: 1rem;
+  /* Flows with the page (no sticky/independent scroll). A previous sticky
+   * variant clipped its own bottom on viewports shorter than the sidebar,
+   * with no way to scroll to the cut-off content. Plain flow scrolls with
+   * the rest of the page, so everything is always reachable. */
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -596,16 +598,27 @@ a.badge:hover { text-decoration: none; }
 }
 
 /* ---------- Card community badge (index) ----------
- * Subtle counts tucked into card-meta — same row as filter pills but
- * styled without a chip background so it doesn't read as clickable.
+ * Subtle counts tucked into card-meta, pushed to the right edge. Clickable:
+ * it diverts (via JS) to the discussion thread rather than the card's own
+ * detail-page link, so it gets a hover affordance to signal that.
  */
 .card-community {
   display: inline-flex;
   gap: 0.5rem;
   margin-left: auto;          /* push to right edge of card-meta */
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
   font-size: 0.74rem;
   color: var(--fg-faint);
   white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.1s ease, color 0.1s ease;
+}
+.card-community:hover,
+.card-community:focus-visible {
+  background: var(--accent-soft);
+  color: var(--accent);
+  outline: none;
 }
 
 /* ---------- Figures gallery ---------- */

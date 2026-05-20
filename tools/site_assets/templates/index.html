@@ -77,7 +77,9 @@
         <span class="badge badge-tag">+{{ s.tags|length - 4 }}</span>
       {% endif %}
       {% if s.discussion_signal %}
-        <span class="card-community" title="community signal — counts refresh on rebuild">
+        <span class="card-community" role="button" tabindex="0"
+              data-discuss-url="{{ s.discussion_signal.url }}"
+              title="open the discussion thread">
           <span>👍 {{ s.discussion_signal.stars }}</span>
           <span>💬 {{ s.discussion_signal.comments }}</span>
         </span>
@@ -214,13 +216,26 @@
     }
     applyAll();
   }
+  // The community badge also lives inside the card <a>. Intercept it the
+  // same way and open the discussion thread instead of navigating to the
+  // submission's detail page.
+  function handleDiscussActivation(e, badge) {
+    e.preventDefault();
+    e.stopPropagation();
+    window.open(badge.dataset.discussUrl, '_blank', 'noopener');
+  }
+
   grid.addEventListener('click', e => {
+    const badge = e.target.closest('[data-discuss-url]');
+    if (badge && grid.contains(badge)) { handleDiscussActivation(e, badge); return; }
     const pill = e.target.closest('[data-filter-action]');
     if (pill && grid.contains(pill)) handlePillActivation(e, pill);
   });
   // Keyboard activation (Enter / Space) for accessibility.
   grid.addEventListener('keydown', e => {
     if (e.key !== 'Enter' && e.key !== ' ') return;
+    const badge = e.target.closest('[data-discuss-url]');
+    if (badge && grid.contains(badge)) { handleDiscussActivation(e, badge); return; }
     const pill = e.target.closest('[data-filter-action]');
     if (pill && grid.contains(pill)) handlePillActivation(e, pill);
   });
