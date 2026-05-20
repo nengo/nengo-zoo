@@ -170,7 +170,7 @@ A maintainer will review for correctness, fit, and quality. They might suggest s
 ## After it's merged
 
 - Your submission gets a permanent URL on the zoo site, a downloadable zip, and a "Tested on Nengo X.Y.Z" badge for each version CI verified.
-- A GitHub Discussion thread is auto-created for your submission in the "Submissions" category, and its number is written back to your `metadata.yaml` by the bot. The thread is where users ask questions, leave comments, and 👍 your work.
+- A GitHub Discussion thread is auto-created for your submission in the "Submissions" category, and its number is written back to your `metadata.yaml` by the bot. The thread is where users ask questions, leave comments, and upvote (↑) your work.
 - TODO: If you've enabled the Zenodo integration on your fork, tagged releases will mint a DOI you can cite.
 - Future versions are easy: bump `version:` in metadata, update the code, open a follow-up PR.
 
@@ -189,7 +189,7 @@ Most often: stale Nengo decoder cache from a previous environment. Run `rm -rf ~
 Bump `version:` in `metadata.yaml`, make your changes, open a PR. The old version's zip stays available; users can pin to it if they need to.
 
 **"How do people 'star' my submission?"**
-Each submission has a GitHub Discussions thread (auto-created when your PR merges, in the "Submissions" category). The 👍 count on the top-level post is the star count; replies are comments. Both are surfaced on your submission's detail page on the zoo site. The static site refreshes those counts on every merge and every six hours, so live values always live on GitHub — the site's numbers are a snapshot of the most recent rebuild.
+Each submission has a GitHub Discussions thread (auto-created when your PR merges, in the "Submissions" category). The **upvote (↑)** count on the top-level post is the star count — that's the one-click arrow at the top of the thread, not the 👍 emoji reaction. Replies are comments. Both are surfaced on your submission's detail page on the zoo site. The static site refreshes those counts on every merge and every six hours, so live values always live on GitHub — the site's numbers are a snapshot of the most recent rebuild.
 
 ---
 

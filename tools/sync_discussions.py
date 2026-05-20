@@ -96,8 +96,9 @@ def discussion_body(name: str, description: str) -> str:
     return (
         f"Community thread for the **{name}** submission.\n\n"
         + (f"{desc}\n\n" if desc else "")
-        + "👍 react to this top post to “star” the submission. "
-        "Reply below with questions, results, or suggestions.\n\n"
+        + "Upvote this thread (the ↑ arrow at the top) to “star” the "
+        "submission — that's the count shown on the zoo site. Reply below "
+        "with questions, results, or suggestions.\n\n"
         "_This thread was created automatically when the submission was merged._"
     )
 

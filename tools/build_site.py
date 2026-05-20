@@ -103,11 +103,8 @@ query($owner: String!, $name: String!, $number: Int!) {
   repository(owner: $owner, name: $name) {
     discussion(number: $number) {
       url
+      upvoteCount
       comments { totalCount }
-      reactionGroups {
-        content
-        reactors { totalCount }
-      }
     }
   }
 }
@@ -162,14 +159,12 @@ def fetch_discussion_signal(discussion_number: int,
             print(f"  WARN: discussion #{discussion_number} not found")
         return None
 
-    stars = 0
-    for grp in disc.get("reactionGroups") or []:
-        if grp.get("content") == "THUMBS_UP":
-            stars = (grp.get("reactors") or {}).get("totalCount", 0)
-            break
+    # "Stars" = GitHub's native discussion upvotes (the ↑ arrow on the top
+    # post), not 👍 emoji reactions. Upvotes are one-click and purpose-built
+    # for ranking, so they're the signal users actually reach for.
     return {
         "url": disc["url"],
-        "stars": stars,
+        "stars": disc.get("upvoteCount", 0),
         "comments": (disc.get("comments") or {}).get("totalCount", 0),
     }
 
