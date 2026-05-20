@@ -171,8 +171,8 @@ A maintainer will review for correctness, fit, and quality. They might suggest s
 
 - Your submission gets a permanent URL on the zoo site, a downloadable zip, and a "Tested on Nengo X.Y.Z" badge for each version CI verified.
 - A GitHub Discussion thread is auto-created for your submission in the "Submissions" category, and its number is written back to your `metadata.yaml` by the bot. The thread is where users ask questions, leave comments, and upvote (↑) your work.
-- TODO: If you've enabled the Zenodo integration on your fork, tagged releases will mint a DOI you can cite.
-- Future versions are easy: bump `version:` in metadata, update the code, open a follow-up PR.
+- A Zenodo DOI is minted automatically for each released version. The DOIs are written into a bot-managed `zenodo:` block in your `metadata.yaml` and shown in a "Cite this submission" block on your detail page (see "How do I cite a submission?" below).
+- Future versions are easy: bump `version:` in metadata, update the code, open a follow-up PR. Each new version gets its own DOI under the same concept.
 
 ## Common questions
 
@@ -190,6 +190,9 @@ Bump `version:` in `metadata.yaml`, make your changes, open a PR. The old versio
 
 **"How do people 'star' my submission?"**
 Each submission has a GitHub Discussions thread (auto-created when your PR merges, in the "Submissions" category). The **upvote (↑)** count on the top-level post is the star count — that's the one-click arrow at the top of the thread, not the 👍 emoji reaction. Replies are comments. Both are surfaced on your submission's detail page on the zoo site. The static site refreshes those counts on every merge and every six hours, so live values always live on GitHub — the site's numbers are a snapshot of the most recent rebuild.
+
+**"How do I cite a submission?"**
+Every released version is automatically deposited to Zenodo, which mints a DOI. You don't do anything — when your version-bump PR merges, a workflow builds your submission's zip, deposits it, and writes the DOIs into a bot-managed `zenodo:` block in your `metadata.yaml`. Your detail page then shows a "Cite this submission" block with two DOIs: one for *this version* and a concept DOI for *all versions* (which always resolves to the latest). Don't edit the `zenodo:` block by hand — like `discussion:`, it's managed for you. (Note: while the zoo is in prototype, DOIs are minted on Zenodo **Sandbox**, so they're for testing and aren't permanent; production DOIs land at launch.)
 
 ---
 

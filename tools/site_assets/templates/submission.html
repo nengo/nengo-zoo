@@ -109,6 +109,20 @@
       {% endfor %}
     </ul>
 
+    {% if s.zenodo and s.zenodo.version_doi %}
+    <h3>Cite this submission</h3>
+    <p class="cite-doi">
+      <span class="cite-label">This version (v{{ s.zenodo.version }})</span>
+      <a href="https://doi.org/{{ s.zenodo.version_doi }}"><code>{{ s.zenodo.version_doi }}</code></a>
+    </p>
+    {% if s.zenodo.concept_doi %}
+    <p class="cite-doi">
+      <span class="cite-label">All versions</span>
+      <a href="https://doi.org/{{ s.zenodo.concept_doi }}"><code>{{ s.zenodo.concept_doi }}</code></a>
+    </p>
+    {% endif %}
+    {% endif %}
+
     {% if s.paper %}
     <h3>Citation</h3>
     <p style="font-size: 0.82rem; color: var(--fg-muted); margin: 0.3em 0;">

@@ -1,0 +1,67 @@
+name: Mint Zenodo DOIs
+
+# For each submission whose current version hasn't been deposited yet, mint a
+# Zenodo DOI (per-submission concept + version lineage, via the REST API — NOT
+# the repo-scoped native GitHub integration) and write the DOIs back into the
+# submission's metadata.yaml. The site then renders a "Cite this submission"
+# block from those fields.
+#
+# Currently points at Zenodo SANDBOX (throwaway DOIs). For the real launch,
+# swap ZENODO_BASE_URL to https://zenodo.org/api and the secret to a
+# production token.
+#
+# Two ways in:
+#   * workflow_run after "Auto-tag submissions" — when a version bump merges,
+#     auto-tag creates the tag, and we deposit on its completion. (A tag pushed
+#     by GITHUB_TOKEN does not trigger `on: push: tags`, so we chain on
+#     workflow completion instead.)
+#   * workflow_dispatch — manual backfill. The script is idempotent: it only
+#     deposits submissions whose version has moved past what's recorded.
+
+on:
+  workflow_run:
+    workflows: ["Auto-tag submissions"]
+    branches: [main]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: write       # commit the DOI write-backs to metadata.yaml
+
+concurrency:
+  group: "zenodo"
+  cancel-in-progress: false
+
+jobs:
+  deposit:
+    runs-on: ubuntu-latest
+    # On workflow_run, only proceed when auto-tag actually succeeded.
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - run: pip install pyyaml
+
+      - name: Deposit new versions to Zenodo + write DOIs back
+        env:
+          ZENODO_TOKEN: ${{ secrets.ZENODO_SANDBOX_TOKEN }}
+          ZENODO_BASE_URL: https://sandbox.zenodo.org/api
+        run: python tools/sync_zenodo.py
+
+      - name: Commit any newly-written DOIs
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add submissions/**/metadata.yaml
+          if git diff --cached --quiet; then
+            echo "No new DOIs to commit."
+          else
+            git commit -m "CI: record Zenodo DOIs for released versions"
+            git push
+          fi

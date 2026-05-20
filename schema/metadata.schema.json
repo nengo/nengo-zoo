@@ -131,6 +131,38 @@
       "type": "integer",
       "minimum": 1,
       "description": "GitHub Discussion number for this submission's community thread. Auto-populated on merge by the discussion-bot workflow; do not set by hand. The site fetches reaction (👍) and reply counts from this thread at build time to render the community-signal badges."
+    },
+    "zenodo": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Zenodo DOI state for this submission. Auto-populated by the zenodo workflow when a version is released; do not set by hand. The site renders a 'Cite this submission' block from these fields.",
+      "properties": {
+        "concept_recid": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Zenodo concept record id — the stable identity used to create new versions of this submission's deposition lineage."
+        },
+        "concept_doi": {
+          "type": "string",
+          "pattern": "^10\\.\\d{4,9}/",
+          "description": "Concept DOI: resolves to the latest version; cite this to reference 'all versions'."
+        },
+        "version_doi": {
+          "type": "string",
+          "pattern": "^10\\.\\d{4,9}/",
+          "description": "Version DOI for the specific released version recorded in `version`."
+        },
+        "version_recid": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Zenodo deposition/record id of the latest published version — the handle the API uses to cut the next version."
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?$",
+          "description": "The submission version that `version_doi` corresponds to. The workflow re-deposits when this falls behind the top-level `version`."
+        }
+      }
     }
   }
 }

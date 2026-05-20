@@ -563,6 +563,20 @@ a.badge:hover { text-decoration: none; }
 /* Sidebar variant of the CI-structural badge (when no matrix exists). */
 .ci-structural-note { margin: 0.1rem 0 0; }
 
+/* ---------- Cite-this-submission (Zenodo DOIs) ---------- */
+.cite-doi {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  margin: 0.35rem 0;
+  font-size: 0.8rem;
+}
+.cite-label { color: var(--fg-faint); }
+.cite-doi code {
+  font-size: 0.78rem;
+  word-break: break-all;   /* DOIs are long; let them wrap in the narrow sidebar */
+}
+
 /* ---------- Community block (sidebar) ----------
  * Visual weight is deliberately quiet — this is a signal, not a CTA. We
  * still want the user to be able to click through to discuss, so the

@@ -27,7 +27,6 @@ import shutil
 import sys
 import urllib.error
 import urllib.request
-import zipfile
 from pathlib import Path
 
 try:
@@ -40,9 +39,11 @@ except ImportError as e:
     print("Install with: pip install pyyaml jinja2 markdown pygments")
     sys.exit(2)
 
-# Reuse the validator's GUI-shape check so the badges agree.
+# Reuse the validator's GUI-shape check so the badges agree, and the shared
+# zip helper so the site download matches what Zenodo archives.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from validate_submission import check_gui_shape  # noqa: E402
+from submission_zip import make_submission_zip  # noqa: E402
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -52,27 +53,6 @@ TEMPLATES_DIR = ASSETS_DIR / "templates"
 CSS_SOURCE = ASSETS_DIR / "style.css"
 
 MARKDOWN_EXTENSIONS = ["fenced_code", "tables", "sane_lists", "codehilite"]
-
-# Files / directories we never want inside a downloadable zip.
-ZIP_EXCLUDE_DIRS = {"__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache",
-                    ".tox", ".venv", "node_modules", ".git", ".DS_Store"}
-ZIP_EXCLUDE_SUFFIXES = {".pyc", ".pyo"}
-
-
-def make_submission_zip(sub_dir: Path, version: str, out_path: Path) -> int:
-    """Zip a submission folder to out_path. Returns the byte size."""
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    archive_root = f"{sub_dir.name}-{version}"
-    with zipfile.ZipFile(out_path, "w", zipfile.ZIP_DEFLATED) as zf:
-        for path in sub_dir.rglob("*"):
-            if any(part in ZIP_EXCLUDE_DIRS for part in path.parts):
-                continue
-            if path.suffix in ZIP_EXCLUDE_SUFFIXES:
-                continue
-            if path.is_file():
-                arcname = f"{archive_root}/{path.relative_to(sub_dir)}"
-                zf.write(path, arcname)
-    return out_path.stat().st_size
 
 
 def format_size(n_bytes: int) -> str:
@@ -274,6 +254,8 @@ def load_submission(sub_dir: Path) -> dict:
         # since fetching is a build-wide concern that wants a single token
         # check and would be wasteful per-submission.
         "discussion":     meta.get("discussion"),
+        # Zenodo DOI block (bot-managed): concept_doi, version_doi, version, …
+        "zenodo":         meta.get("zenodo"),
         "readme_md":      readme_md,
         "figures_src":    figures,        # absolute source paths
         "sub_dir":        sub_dir,
