@@ -1,0 +1,29 @@
+name: communication-channel
+type: model
+version: 0.1.0
+
+authors:
+  - name: <spoocejuice>           # ← swap to your test-account display name
+    affiliation: NengoZoo testing
+
+license: GPL-2.0-or-later
+
+description: >
+  The smallest useful Nengo network — a value represented in one
+  ensemble is transmitted to a second ensemble through a decoded
+  connection. The canonical "hello world" of NEF.
+
+tags:
+  - communication
+  - representation
+  - tutorial
+  - beginner
+
+nengo_version: ">=3.2,<5"
+
+backends:
+  - core
+
+complexity: beginner
+
+entry_point: communication_channel.py
