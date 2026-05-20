@@ -92,6 +92,21 @@ def _request(method: str, url: str, token: str,
 # Metadata mapping
 # --------------------------------------------------------------------------
 
+def valid_orcid(orcid: str) -> bool:
+    """Validate an ORCID's ISO 7064 Mod 11-2 check digit. Zenodo rejects
+    syntactically-fine-but-checksum-invalid ORCIDs (e.g. placeholder
+    0000-0000-0000-0000) at publish time, so we screen them out first."""
+    digits = orcid.replace("-", "").strip()
+    if len(digits) != 16 or not digits[:15].isdigit():
+        return False
+    total = 0
+    for d in digits[:15]:
+        total = (total + int(d)) * 2
+    result = (12 - (total % 11)) % 11
+    expected = "X" if result == 10 else str(result)
+    return digits[15].upper() == expected
+
+
 def zenodo_metadata(meta: dict) -> dict:
     """Build Zenodo deposition metadata from a submission's metadata.yaml."""
     creators = []
@@ -99,8 +114,12 @@ def zenodo_metadata(meta: dict) -> dict:
         c = {"name": a.get("name", "Unknown")}
         if a.get("affiliation"):
             c["affiliation"] = a["affiliation"]
-        if a.get("orcid"):
-            c["orcid"] = a["orcid"]
+        orcid = a.get("orcid")
+        if orcid and valid_orcid(orcid):
+            c["orcid"] = orcid
+        elif orcid:
+            # Don't let a bad optional field block the DOI — drop it, but say so.
+            print(f"  WARN: dropping invalid ORCID {orcid!r} for {c['name']!r}")
         creators.append(c)
     if not creators:
         creators = [{"name": "NengoZoo"}]

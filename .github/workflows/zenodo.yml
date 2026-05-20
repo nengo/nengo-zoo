@@ -55,6 +55,10 @@ jobs:
         run: python tools/sync_zenodo.py
 
       - name: Commit any newly-written DOIs
+        # always() so a partial run (some submissions fail) still records the
+        # ones that succeeded — re-runs then only retry the failures, and we
+        # don't re-mint DOIs we already have.
+        if: always()
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
