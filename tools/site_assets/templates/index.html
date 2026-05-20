@@ -28,6 +28,7 @@
     <span>Sort</span>
     <select id="filter-sort">
       <option value="name">name (A–Z)</option>
+      <option value="stars">stars (most first)</option>
       <option value="type">type</option>
       <option value="complexity">complexity</option>
     </select>
@@ -48,7 +49,8 @@
      data-tags="{{ s.tags|join(' ')|lower }}"
      data-type="{{ s.type }}"
      data-complexity="{{ s.complexity }}"
-     data-gui="{{ '1' if s.nengogui_ready else '0' }}">
+     data-gui="{{ '1' if s.nengogui_ready else '0' }}"
+     data-stars="{{ s.discussion_signal.stars if s.discussion_signal else 0 }}">
     <div class="card-head">
       <h2 class="card-name">{{ s.name }}</h2>
       <span class="badge badge-type badge-type-{{ s.type }}"
@@ -136,6 +138,7 @@
   function sortKey(card) {
     if (state.sort === 'type')       return card.dataset.type;
     if (state.sort === 'complexity') return COMPLEXITY_RANK[card.dataset.complexity] ?? 99;
+    if (state.sort === 'stars')      return Number(card.dataset.stars) || 0;
     return card.dataset.name;
   }
 
@@ -143,6 +146,12 @@
     // sort
     const ordered = [...cards].sort((a, b) => {
       const ka = sortKey(a), kb = sortKey(b);
+      // Stars sort descending (most-starred first); everything else ascending.
+      // Name is the stable tiebreak in all cases.
+      if (state.sort === 'stars') {
+        if (ka !== kb) return kb - ka;
+        return a.dataset.name.localeCompare(b.dataset.name);
+      }
       if (ka < kb) return -1;
       if (ka > kb) return 1;
       return a.dataset.name.localeCompare(b.dataset.name);  // stable tiebreak
