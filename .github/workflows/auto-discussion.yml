@@ -18,6 +18,11 @@ on:
     paths:
       - "submissions/**/metadata.yaml"
   workflow_dispatch:
+    inputs:
+      refresh_bodies:
+        description: "Also rewrite existing thread bodies to the current template (overwrites manual edits)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write       # commit the discussion numbers back to metadata.yaml
@@ -46,7 +51,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DISCUSSION_CATEGORY: Submissions
-        run: python tools/sync_discussions.py
+        run: |
+          python tools/sync_discussions.py \
+            ${{ github.event.inputs.refresh_bodies == 'true' && '--refresh-bodies' || '' }}
 
       - name: Commit any newly-written discussion numbers
         run: |

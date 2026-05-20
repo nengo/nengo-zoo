@@ -29,6 +29,7 @@ Usage:
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import sys
@@ -64,6 +65,25 @@ mutation($repoId: ID!, $categoryId: ID!, $title: String!, $body: String!) {
   createDiscussion(input: {
     repositoryId: $repoId, categoryId: $categoryId, title: $title, body: $body
   }) {
+    discussion { number url }
+  }
+}
+"""
+
+# updateDiscussion needs the discussion's node id, not its number — so we
+# resolve the id by number first, then update the body. Used only by the
+# --refresh-bodies path.
+DISCUSSION_ID_QUERY = """
+query($owner: String!, $name: String!, $number: Int!) {
+  repository(owner: $owner, name: $name) {
+    discussion(number: $number) { id }
+  }
+}
+"""
+
+UPDATE_MUTATION = """
+mutation($id: ID!, $body: String!) {
+  updateDiscussion(input: { discussionId: $id, body: $body }) {
     discussion { number url }
   }
 }
@@ -115,7 +135,31 @@ def append_discussion_field(meta_path: Path, number: int) -> None:
     meta_path.write_text(text, encoding="utf-8")
 
 
+def refresh_body(owner: str, name: str, number: int,
+                 sub_name: str, description: str, token: str) -> str:
+    """Rewrite an existing discussion's body to the current canonical text.
+    Resolves the node id by number, then runs updateDiscussion. Returns the
+    thread URL. Raises on failure so the caller can count it."""
+    data = graphql(DISCUSSION_ID_QUERY,
+                   {"owner": owner, "name": name, "number": number}, token)
+    disc = (data.get("repository") or {}).get("discussion")
+    if not disc:
+        raise RuntimeError(f"discussion #{number} not found")
+    body = discussion_body(sub_name, description)
+    result = graphql(UPDATE_MUTATION, {"id": disc["id"], "body": body}, token)
+    return result["updateDiscussion"]["discussion"]["url"]
+
+
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--refresh-bodies", action="store_true",
+        help="Also rewrite the body text of submissions that ALREADY have a "
+             "discussion, bringing them in line with the current template. "
+             "Use after changing the body wording. Overwrites manual edits.",
+    )
+    args = parser.parse_args()
+
     token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
     if not token:
         print("ERROR: GITHUB_TOKEN not set")
@@ -129,51 +173,68 @@ def main() -> int:
 
     category_name = os.environ.get("DISCUSSION_CATEGORY", "Submissions")
 
-    # Resolve repo id + the target category id.
-    try:
-        data = graphql(REPO_QUERY, {"owner": owner, "name": name}, token)
-    except (urllib.error.URLError, RuntimeError, KeyError) as e:
-        print(f"ERROR: could not query repository: {e}")
-        return 2
+    # Read every submission's metadata once, then split into work buckets.
+    metas = [(p, yaml.safe_load(p.read_text(encoding="utf-8")))
+             for p in sorted(SUBMISSIONS_DIR.glob("*/metadata.yaml"))]
+    to_create = [(p, m) for p, m in metas if not m.get("discussion")]
+    to_refresh = [(p, m) for p, m in metas if m.get("discussion")] \
+        if args.refresh_bodies else []
 
-    repo = data["repository"]
-    repo_id = repo["id"]
-    categories = {c["name"]: c["id"] for c in repo["discussionCategories"]["nodes"]}
-    if category_name not in categories:
-        print(f"ERROR: discussion category {category_name!r} not found. "
-              f"Available: {sorted(categories)}")
-        return 2
-    category_id = categories[category_name]
+    created, refreshed, failed, skipped = 0, 0, 0, 0
 
-    # Walk submissions; create a thread for any that lack a discussion number.
-    created, failed, skipped = 0, 0, 0
-    for meta_path in sorted(SUBMISSIONS_DIR.glob("*/metadata.yaml")):
-        meta = yaml.safe_load(meta_path.read_text(encoding="utf-8"))
-        sub_name = meta.get("name", meta_path.parent.name)
-        if meta.get("discussion"):
-            print(f"  skip: {sub_name} already has discussion #{meta['discussion']}")
-            skipped += 1
-            continue
-
-        title = sub_name
-        body = discussion_body(sub_name, meta.get("description", ""))
+    # --- Create threads for submissions that don't have one yet -------------
+    if to_create:
+        # Category id is only needed when we actually create something.
         try:
-            result = graphql(CREATE_MUTATION, {
-                "repoId": repo_id, "categoryId": category_id,
-                "title": title, "body": body,
-            }, token)
-            disc = result["createDiscussion"]["discussion"]
-            number, url = disc["number"], disc["url"]
+            data = graphql(REPO_QUERY, {"owner": owner, "name": name}, token)
         except (urllib.error.URLError, RuntimeError, KeyError) as e:
-            print(f"  FAIL: {sub_name}: {e}")
+            print(f"ERROR: could not query repository: {e}")
+            return 2
+        repo = data["repository"]
+        repo_id = repo["id"]
+        categories = {c["name"]: c["id"] for c in repo["discussionCategories"]["nodes"]}
+        if category_name not in categories:
+            print(f"ERROR: discussion category {category_name!r} not found. "
+                  f"Available: {sorted(categories)}")
+            return 2
+        category_id = categories[category_name]
+
+        for meta_path, meta in to_create:
+            sub_name = meta.get("name", meta_path.parent.name)
+            body = discussion_body(sub_name, meta.get("description", ""))
+            try:
+                result = graphql(CREATE_MUTATION, {
+                    "repoId": repo_id, "categoryId": category_id,
+                    "title": sub_name, "body": body,
+                }, token)
+                disc = result["createDiscussion"]["discussion"]
+                number, url = disc["number"], disc["url"]
+            except (urllib.error.URLError, RuntimeError, KeyError) as e:
+                print(f"  FAIL (create): {sub_name}: {e}")
+                failed += 1
+                continue
+            append_discussion_field(meta_path, number)
+            print(f"  created: {sub_name} → discussion #{number} ({url})")
+            created += 1
+    else:
+        print("  (no submissions need a new discussion)")
+
+    # --- Optionally rewrite existing thread bodies --------------------------
+    for meta_path, meta in to_refresh:
+        sub_name = meta.get("name", meta_path.parent.name)
+        number = meta["discussion"]
+        try:
+            url = refresh_body(owner, name, number, sub_name,
+                               meta.get("description", ""), token)
+        except (urllib.error.URLError, RuntimeError, KeyError) as e:
+            print(f"  FAIL (refresh): {sub_name} #{number}: {e}")
             failed += 1
             continue
+        print(f"  refreshed: {sub_name} → discussion #{number} ({url})")
+        refreshed += 1
 
-        append_discussion_field(meta_path, number)
-        print(f"  created: {sub_name} → discussion #{number} ({url})")
-        created += 1
-
-    print(f"\nDone. created={created} skipped={skipped} failed={failed}")
+    print(f"\nDone. created={created} refreshed={refreshed} "
+          f"skipped={skipped} failed={failed}")
     return 1 if failed else 0
 
 
