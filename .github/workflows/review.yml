@@ -150,9 +150,14 @@ jobs:
               sys.exit(0)
 
           # Diff this submission's files against main
+          # NOTE: this step runs with working-directory = submissions/<sub>,
+          # so a bare "submissions/<sub>/" pathspec would be resolved relative
+          # to the cwd (→ submissions/<sub>/submissions/<sub>/) and match
+          # nothing, making the diff always empty. The ":/" magic prefix
+          # anchors the pathspec to the repo root regardless of cwd.
           diff = subprocess.check_output(
               ["git", "diff", "--name-only",
-               f"{base_sha}...HEAD", "--", f"submissions/{sub}/"],
+               f"{base_sha}...HEAD", "--", f":/submissions/{sub}/"],
               text=True,
           ).strip().splitlines()
 
