@@ -90,12 +90,20 @@ def fetch_concept_versions(record_recid: int, base: str) -> dict[str, str]:
     (The legacy `conceptrecid:` search query returns nothing on the current
     InvenioRDM Zenodo, so we use the versions endpoint instead.) Empty dict
     on any failure — caller degrades gracefully."""
-    url = f"{base.rstrip('/')}/records/{record_recid}/versions?size=100"
+    # Bare endpoint — no ?size= param. The current Zenodo rejects size=100 with
+    # a 400, and the default page comfortably covers our handful of versions
+    # per submission. (Paginate here only if a submission ever exceeds it.)
+    url = f"{base.rstrip('/')}/records/{record_recid}/versions"
     req = urllib.request.Request(url, headers={"User-Agent": "nengozoo-build-site",
                                                "Accept": "application/json"})
     try:
         with urllib.request.urlopen(req, timeout=15) as resp:
             body = json.loads(resp.read())
+    except urllib.error.HTTPError as e:  # subclass of URLError — catch first
+        detail = e.read().decode("utf-8", errors="replace")[:200].replace("\n", " ")
+        print(f"  WARN: Zenodo version lookup failed for record {record_recid} "
+              f"(HTTP {e.code}: {detail})")
+        return {}
     except (urllib.error.URLError, json.JSONDecodeError, TimeoutError) as e:
         print(f"  WARN: Zenodo version lookup failed for record {record_recid} ({e})")
         return {}
