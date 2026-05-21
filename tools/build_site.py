@@ -453,14 +453,6 @@ def render(out_root: Path) -> int:
                 shutil.copy2(f["src"], fig_out_dir / f["filename"])
                 figures_rendered.append({"name": f["name"], "url": f"figures/{f['filename']}"})
 
-        # Build a downloadable zip of the submission folder (current working
-        # tree) for the prominent Download button — always available, even
-        # before the first version tag exists.
-        zip_name = f"{s['name']}-{s['version']}.zip"
-        zip_path = sub_out / zip_name
-        zip_size = make_submission_zip(s["sub_dir"], s["version"], zip_path)
-        download = {"filename": zip_name, "size": format_size(zip_size)}
-
         # Build the Versions list: git tags are the authoritative set of
         # released versions; archive each into versions/<name>-<ver>.zip and
         # join the per-version DOI (Zenodo lookup, plus the top-level latest as
@@ -480,6 +472,23 @@ def render(out_root: Path) -> int:
                 "zip_url": f"versions/{vzip}" if vsize is not None else None,
                 "zip_size": format_size(vsize) if vsize is not None else None,
             })
+
+        # The prominent Download button serves the latest *released* (tagged)
+        # artifact — the very same file the Versions dropdown links, so a given
+        # version has one canonical zip. Only when there's no usable tag yet
+        # (e.g. a brand-new submission auto-tag hasn't processed) do we fall
+        # back to a working-tree zip so the button still works.
+        if versions and versions[0].get("zip_url"):
+            latest = versions[0]
+            download = {
+                "name": f"{s['name']}-{latest['version']}.zip",
+                "href": latest["zip_url"],
+                "size": latest["zip_size"],
+            }
+        else:
+            zip_name = f"{s['name']}-{s['version']}.zip"
+            zip_size = make_submission_zip(s["sub_dir"], s["version"], sub_out / zip_name)
+            download = {"name": zip_name, "href": zip_name, "size": format_size(zip_size)}
 
         readme_html = markdown.markdown(s["readme_md"], extensions=MARKDOWN_EXTENSIONS)
 
