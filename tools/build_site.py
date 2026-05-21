@@ -24,8 +24,10 @@ import datetime
 import json
 import os
 import shutil
+import subprocess
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -61,6 +63,111 @@ def format_size(n_bytes: int) -> str:
             return f"{n_bytes:.0f} {unit}" if unit == "B" else f"{n_bytes:.1f} {unit}"
         n_bytes /= 1024
     return f"{n_bytes:.1f} GB"
+
+
+def version_sort_key(vstr: str):
+    """Numeric sort key for a semver-ish string ('0.10.0' > '0.9.0')."""
+    core = str(vstr).split("-")[0]
+    try:
+        return tuple(int(x) for x in core.split("."))
+    except ValueError:
+        return (0,)
+
+
+# --- Versions / per-version DOIs + zips ------------------------------------
+# The version LIST and the downloadable zips come from git tags
+# (<name>-v<version>, created by auto-tag.yml) — the durable, hard-to-fumble
+# record of what was released. Per-version DOIs are looked up from Zenodo at
+# build time (published records are public, so no token needed) and joined to
+# the tags by version string. If Zenodo is unreachable, versions + zips still
+# render; only the DOI links blink out until the next build.
+
+ZENODO_DEFAULT_BASE = "https://sandbox.zenodo.org/api"
+
+
+def fetch_concept_versions(concept_recid: int, base: str) -> dict[str, str]:
+    """Return {version: doi} for every published version under a concept.
+    Empty dict on any failure (caller degrades gracefully)."""
+    q = urllib.parse.urlencode({
+        "q": f"conceptrecid:{concept_recid}",
+        "all_versions": "true",
+        "size": "100",
+    })
+    url = f"{base.rstrip('/')}/records?{q}"
+    req = urllib.request.Request(url, headers={"User-Agent": "nengozoo-build-site",
+                                               "Accept": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            body = json.loads(resp.read())
+    except (urllib.error.URLError, json.JSONDecodeError, TimeoutError) as e:
+        print(f"  WARN: Zenodo version lookup failed for concept {concept_recid} ({e})")
+        return {}
+
+    out: dict[str, str] = {}
+    for hit in (body.get("hits", {}).get("hits") or []):
+        meta = hit.get("metadata") or {}
+        version = meta.get("version")
+        # DOI lives at hit["doi"] (legacy) or hit["pids"]["doi"]["identifier"] (RDM).
+        doi = hit.get("doi") or (hit.get("pids", {}).get("doi") or {}).get("identifier")
+        if version and doi:
+            out[str(version)] = doi
+    return out
+
+
+def fetch_all_zenodo_versions(submissions: list[dict]) -> None:
+    """Attach a {version: doi} map to each submission as 'zenodo_doi_map'.
+    Gated on ZENODO_BASE_URL being set, mirroring the discussions fetch's
+    token gate — so local builds without it are fast and offline."""
+    for s in submissions:
+        s["zenodo_doi_map"] = {}
+
+    base = os.environ.get("ZENODO_BASE_URL")
+    if not base:
+        print("  (no ZENODO_BASE_URL set; skipping per-version DOI lookup)")
+        return
+    with_concepts = [s for s in submissions
+                     if (s.get("zenodo") or {}).get("concept_recid")]
+    if not with_concepts:
+        return
+    print(f"  fetching Zenodo version DOIs for {len(with_concepts)} submission(s)…")
+    for s in with_concepts:
+        s["zenodo_doi_map"] = fetch_concept_versions(s["zenodo"]["concept_recid"], base)
+
+
+def submission_tag_versions(name: str) -> list[str]:
+    """Versions released for a submission, from its <name>-v* git tags."""
+    prefix = f"{name}-v"
+    try:
+        raw = subprocess.check_output(
+            ["git", "tag", "--list", f"{prefix}*"],
+            cwd=str(REPO_ROOT), text=True, stderr=subprocess.DEVNULL,
+        )
+    except subprocess.CalledProcessError:
+        return []
+    versions = [t[len(prefix):] for t in raw.split() if t.startswith(prefix)]
+    return sorted(set(versions), key=version_sort_key, reverse=True)
+
+
+def build_version_zip(name: str, version: str, out_path: Path) -> int | None:
+    """Archive a submission's subtree at its version tag into out_path.
+    Uses `git archive`, so only tracked files are included (correct for a
+    released snapshot). Returns byte size, or None if the tag/subtree is
+    missing."""
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    treeish = f"{name}-v{version}:submissions/{name}"
+    try:
+        with out_path.open("wb") as fh:
+            subprocess.check_call(
+                ["git", "archive", "--format=zip",
+                 f"--prefix={name}-{version}/", treeish],
+                cwd=str(REPO_ROOT), stdout=fh, stderr=subprocess.DEVNULL,
+            )
+    except subprocess.CalledProcessError:
+        if out_path.exists():
+            out_path.unlink()
+        print(f"  WARN: could not archive {name} v{version} (tag/subtree missing)")
+        return None
+    return out_path.stat().st_size
 
 
 # --- Discussion (community-signal) fetch -----------------------------------
@@ -296,6 +403,9 @@ def render(out_root: Path) -> int:
     #       that has a discussion number; silently no-ops without a token).
     fetch_all_discussion_signals(submissions)
 
+    # ----- Pull per-version DOIs from Zenodo (gated on ZENODO_BASE_URL).
+    fetch_all_zenodo_versions(submissions)
+
     # ----- Set up Jinja2 -----
     env = Environment(
         loader=FileSystemLoader(str(TEMPLATES_DIR)),
@@ -332,11 +442,33 @@ def render(out_root: Path) -> int:
                 shutil.copy2(f["src"], fig_out_dir / f["filename"])
                 figures_rendered.append({"name": f["name"], "url": f"figures/{f['filename']}"})
 
-        # Build a downloadable zip of the submission folder.
+        # Build a downloadable zip of the submission folder (current working
+        # tree) for the prominent Download button — always available, even
+        # before the first version tag exists.
         zip_name = f"{s['name']}-{s['version']}.zip"
         zip_path = sub_out / zip_name
         zip_size = make_submission_zip(s["sub_dir"], s["version"], zip_path)
         download = {"filename": zip_name, "size": format_size(zip_size)}
+
+        # Build the Versions list: git tags are the authoritative set of
+        # released versions; archive each into versions/<name>-<ver>.zip and
+        # join the per-version DOI (Zenodo lookup, plus the top-level latest as
+        # a fallback so the newest version always has its DOI).
+        doi_map = dict(s.get("zenodo_doi_map") or {})
+        zen = s.get("zenodo") or {}
+        if zen.get("version") and zen.get("version_doi"):
+            doi_map.setdefault(str(zen["version"]), zen["version_doi"])
+
+        versions = []
+        for ver in submission_tag_versions(s["name"]):
+            vzip = f"{s['name']}-{ver}.zip"
+            vsize = build_version_zip(s["name"], ver, sub_out / "versions" / vzip)
+            versions.append({
+                "version": ver,
+                "doi": doi_map.get(ver),
+                "zip_url": f"versions/{vzip}" if vsize is not None else None,
+                "zip_size": format_size(vsize) if vsize is not None else None,
+            })
 
         readme_html = markdown.markdown(s["readme_md"], extensions=MARKDOWN_EXTENSIONS)
 
@@ -346,6 +478,7 @@ def render(out_root: Path) -> int:
             "figures": figures_rendered,
             "readme_html": readme_html,
             "download": download,
+            "versions": versions,
             "css_path": "../../style.css",
             "code_css_path": "../../code.css",
             "logo_path": "../../nengozoo-logo.svg",

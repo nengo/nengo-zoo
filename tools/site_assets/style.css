@@ -577,6 +577,31 @@ a.badge:hover { text-decoration: none; }
   word-break: break-all;   /* DOIs are long; let them wrap in the narrow sidebar */
 }
 
+/* ---------- Versions dropdown (sidebar) ---------- */
+.version-select {
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 0.85rem;
+}
+.version-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.version-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin: 0.45rem 0 0;
+  font-size: 0.8rem;
+}
+#version-doi { word-break: break-all; }
+
 /* ---------- Community block (sidebar) ----------
  * Visual weight is deliberately quiet — this is a signal, not a CTA. We
  * still want the user to be able to click through to discuss, so the

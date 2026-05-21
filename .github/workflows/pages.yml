@@ -42,6 +42,10 @@ jobs:
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history + tags so build_site.py can `git archive` each
+          # <name>-v<version> tag into a per-version download zip.
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
@@ -63,9 +67,13 @@ jobs:
         # GITHUB_TOKEN lets build_site.py call the GraphQL API for
         # per-submission discussion stars + reply counts. GITHUB_REPOSITORY
         # is set automatically by Actions and tells the script which repo
-        # to query. Both fall back gracefully (no badges) if absent.
+        # to query. ZENODO_BASE_URL enables the per-version DOI lookup (no
+        # token needed — published records are public). All fall back
+        # gracefully if absent. Flip ZENODO_BASE_URL to https://zenodo.org/api
+        # at production cutover.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ZENODO_BASE_URL: https://sandbox.zenodo.org/api
         run: python tools/build_site.py
 
       - name: Upload Pages artifact

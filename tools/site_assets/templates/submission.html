@@ -148,6 +148,43 @@
       {% endfor %}
     </ul>
     {% endif %}
+
+    {% if versions %}
+    <h3>Versions</h3>
+    <select id="version-select" class="version-select" aria-label="Choose a version">
+      {% for v in versions %}
+      <option value="{{ v.version }}"
+              data-doi="{{ v.doi or '' }}"
+              data-zip="{{ v.zip_url or '' }}"
+              data-zipsize="{{ v.zip_size or '' }}">v{{ v.version }}{% if loop.first %} (latest){% endif %}</option>
+      {% endfor %}
+    </select>
+    <p class="version-links">
+      <a id="version-zip" download>zip</a>
+      <a id="version-doi" target="_blank" rel="noopener">DOI</a>
+    </p>
+    <script>
+    (function () {
+      var sel = document.getElementById('version-select');
+      var zipEl = document.getElementById('version-zip');
+      var doiEl = document.getElementById('version-doi');
+      function update() {
+        var o = sel.options[sel.selectedIndex];
+        var zip = o.getAttribute('data-zip');
+        var zsize = o.getAttribute('data-zipsize');
+        var doi = o.getAttribute('data-doi');
+        if (zip) { zipEl.style.display = ''; zipEl.href = zip;
+                   zipEl.textContent = '⬇ zip' + (zsize ? ' (' + zsize + ')' : ''); }
+        else { zipEl.style.display = 'none'; }
+        if (doi) { doiEl.style.display = ''; doiEl.href = 'https://doi.org/' + doi;
+                   doiEl.textContent = 'DOI: ' + doi; }
+        else { doiEl.style.display = 'none'; }
+      }
+      sel.addEventListener('change', update);
+      update();
+    })();
+    </script>
+    {% endif %}
   </aside>
 </div>
 {% endblock %}
