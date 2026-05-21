@@ -27,7 +27,6 @@ import shutil
 import subprocess
 import sys
 import urllib.error
-import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -85,30 +84,29 @@ def version_sort_key(vstr: str):
 ZENODO_DEFAULT_BASE = "https://sandbox.zenodo.org/api"
 
 
-def fetch_concept_versions(concept_recid: int, base: str) -> dict[str, str]:
-    """Return {version: doi} for every published version under a concept.
-    Empty dict on any failure (caller degrades gracefully)."""
-    q = urllib.parse.urlencode({
-        "q": f"conceptrecid:{concept_recid}",
-        "all_versions": "true",
-        "size": "100",
-    })
-    url = f"{base.rstrip('/')}/records?{q}"
+def fetch_concept_versions(record_recid: int, base: str) -> dict[str, str]:
+    """Return {version: doi} for every published version sharing a concept
+    with the given record, via Zenodo's /records/{id}/versions endpoint.
+    (The legacy `conceptrecid:` search query returns nothing on the current
+    InvenioRDM Zenodo, so we use the versions endpoint instead.) Empty dict
+    on any failure — caller degrades gracefully."""
+    url = f"{base.rstrip('/')}/records/{record_recid}/versions?size=100"
     req = urllib.request.Request(url, headers={"User-Agent": "nengozoo-build-site",
                                                "Accept": "application/json"})
     try:
         with urllib.request.urlopen(req, timeout=15) as resp:
             body = json.loads(resp.read())
     except (urllib.error.URLError, json.JSONDecodeError, TimeoutError) as e:
-        print(f"  WARN: Zenodo version lookup failed for concept {concept_recid} ({e})")
+        print(f"  WARN: Zenodo version lookup failed for record {record_recid} ({e})")
         return {}
 
     out: dict[str, str] = {}
     for hit in (body.get("hits", {}).get("hits") or []):
         meta = hit.get("metadata") or {}
         version = meta.get("version")
-        # DOI lives at hit["doi"] (legacy) or hit["pids"]["doi"]["identifier"] (RDM).
-        doi = hit.get("doi") or (hit.get("pids", {}).get("doi") or {}).get("identifier")
+        # DOI: top-level "doi", or metadata.doi, or pids.doi.identifier.
+        doi = (hit.get("doi") or meta.get("doi")
+               or (hit.get("pids", {}).get("doi") or {}).get("identifier"))
         if version and doi:
             out[str(version)] = doi
     return out
@@ -125,13 +123,18 @@ def fetch_all_zenodo_versions(submissions: list[dict]) -> None:
     if not base:
         print("  (no ZENODO_BASE_URL set; skipping per-version DOI lookup)")
         return
-    with_concepts = [s for s in submissions
-                     if (s.get("zenodo") or {}).get("concept_recid")]
-    if not with_concepts:
+    # The versions endpoint is keyed off a concrete version record id; use the
+    # latest (version_recid), falling back to concept_recid.
+    with_records = [s for s in submissions
+                    if (s.get("zenodo") or {}).get("version_recid")
+                    or (s.get("zenodo") or {}).get("concept_recid")]
+    if not with_records:
         return
-    print(f"  fetching Zenodo version DOIs for {len(with_concepts)} submission(s)…")
-    for s in with_concepts:
-        s["zenodo_doi_map"] = fetch_concept_versions(s["zenodo"]["concept_recid"], base)
+    print(f"  fetching Zenodo version DOIs for {len(with_records)} submission(s)…")
+    for s in with_records:
+        zen = s["zenodo"]
+        rec = zen.get("version_recid") or zen.get("concept_recid")
+        s["zenodo_doi_map"] = fetch_concept_versions(rec, base)
 
 
 def submission_tag_versions(name: str) -> list[str]:
