@@ -433,6 +433,7 @@ def render(out_root: Path) -> int:
         css_path="style.css",
         code_css_path="code.css",
         logo_path="nengozoo-logo.svg",
+        favicon_path="favicon.svg",
         home_path="index.html",
         contributing_path="contributing.html",
         **base_ctx,
@@ -502,6 +503,7 @@ def render(out_root: Path) -> int:
             "css_path": "../../style.css",
             "code_css_path": "../../code.css",
             "logo_path": "../../nengozoo-logo.svg",
+            "favicon_path": "../../favicon.svg",
             "home_path": "../../index.html",
             "contributing_path": "../../contributing.html",
             **base_ctx,
@@ -509,11 +511,14 @@ def render(out_root: Path) -> int:
         html = env.get_template("submission.html").render(s=ctx, **ctx)
         (sub_out / "index.html").write_text(html)
 
-    # ----- Copy CSS + logo to site root -----
+    # ----- Copy CSS + logo + favicon to site root -----
     shutil.copy2(CSS_SOURCE, out_root / "style.css")
     logo_source = ASSETS_DIR / "nengozoo-logo.svg"
     if logo_source.exists():
         shutil.copy2(logo_source, out_root / "nengozoo-logo.svg")
+    favicon_source = ASSETS_DIR / "favicon.svg"
+    if favicon_source.exists():
+        shutil.copy2(favicon_source, out_root / "favicon.svg")
 
     # ----- Render CONTRIBUTING.md as a static page -----
     contributing_src = REPO_ROOT / "CONTRIBUTING.md"
@@ -527,6 +532,7 @@ def render(out_root: Path) -> int:
             css_path="style.css",
             code_css_path="code.css",
             logo_path="nengozoo-logo.svg",
+            favicon_path="favicon.svg",
             home_path="index.html",
             contributing_path="contributing.html",
             **base_ctx,
