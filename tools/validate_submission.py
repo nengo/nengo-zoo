@@ -46,6 +46,7 @@ except ImportError:
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCHEMA_PATH = REPO_ROOT / "schema" / "metadata.schema.json"
+SUBMISSIONS_DIR = REPO_ROOT / "submissions"
 
 # Files every submission must carry.
 COMMON_REQUIRED = [
@@ -83,6 +84,27 @@ def required_paths(submission_type: str) -> list[str]:
     if has_library_api(submission_type):
         paths.extend(LIBRARY_API_REQUIRED)
     return paths
+
+
+def name_conflicts(submission_dir: Path, declared_name: str) -> list[str]:
+    """Folders (other than this one) under submissions/ whose metadata declares
+    the same canonical name. Comparison is case-insensitive: names are
+    lowercase by schema, but a case-fold duplicate would still collide on a
+    case-insensitive filesystem and produce ambiguous site URLs. Unparseable
+    siblings are skipped — their own validation run will flag them."""
+    target = str(declared_name).lower()
+    here = submission_dir.resolve()
+    conflicts = []
+    for other_meta in sorted(SUBMISSIONS_DIR.glob("*/metadata.yaml")):
+        if other_meta.parent.resolve() == here:
+            continue
+        try:
+            other = yaml.safe_load(other_meta.read_text(encoding="utf-8")) or {}
+        except yaml.YAMLError:
+            continue
+        if str(other.get("name", "")).lower() == target:
+            conflicts.append(other_meta.parent.name)
+    return conflicts
 
 
 def import_script(script_path: Path, extra_sys_path: list[Path] | None = None):
@@ -193,6 +215,18 @@ def validate(submission_dir: Path) -> bool:
         declared_name == folder_name,
         f"name={declared_name!r}, folder={folder_name!r}",
     )
+
+    # --- Name must be unique across submissions/ --------------------------
+    # The folder-match check + filesystem make exact duplicates hard, but this
+    # makes the global "one canonical name per submission" invariant explicit
+    # and catches case-fold collisions a per-folder check would miss.
+    if declared_name:
+        conflicts = name_conflicts(submission_dir, declared_name)
+        all_ok &= check(
+            "name is unique across submissions/",
+            not conflicts,
+            f"{declared_name!r} also declared by: {conflicts}" if conflicts else "",
+        )
 
     # --- Entry point must exist (unless ci_runnable: false) ----------------
     ci_runnable = metadata.get("ci_runnable", True)
