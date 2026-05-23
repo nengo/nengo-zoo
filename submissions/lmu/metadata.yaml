@@ -43,11 +43,3 @@ paper:
   url: https://papers.nips.cc/paper_files/paper/2019/hash/952285b9b7e7a1be5aa7849f32ffff05-Abstract.html
 
 entry_point: lmu.py
-discussion: 13
-
-zenodo:
-  concept_recid: 502427
-  concept_doi: "10.5072/zenodo.502427"
-  version_doi: "10.5072/zenodo.502428"
-  version_recid: 502428
-  version: "0.1.0"

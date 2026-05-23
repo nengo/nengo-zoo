@@ -511,7 +511,7 @@ def render(out_root: Path) -> int:
         html = env.get_template("submission.html").render(s=ctx, **ctx)
         (sub_out / "index.html").write_text(html)
 
-    # ----- Copy CSS + logo + favicon to site root -----
+    # ----- Copy CSS + logo + favicon + CNAME to site root -----
     shutil.copy2(CSS_SOURCE, out_root / "style.css")
     logo_source = ASSETS_DIR / "nengozoo-logo.svg"
     if logo_source.exists():
@@ -519,6 +519,14 @@ def render(out_root: Path) -> int:
     favicon_source = ASSETS_DIR / "favicon.svg"
     if favicon_source.exists():
         shutil.copy2(favicon_source, out_root / "favicon.svg")
+    # GitHub Pages custom-domain marker. The site deploys via Actions
+    # (upload-pages-artifact), so the domain must travel inside the artifact —
+    # there's no gh-pages branch to hold it. Copied only if present, which keeps
+    # the build portable: drop a site_assets/CNAME with your domain to enable a
+    # custom domain, or delete it to fall back to the *.github.io default.
+    cname_source = ASSETS_DIR / "CNAME"
+    if cname_source.exists():
+        shutil.copy2(cname_source, out_root / "CNAME")
 
     # ----- Render CONTRIBUTING.md as a static page -----
     contributing_src = REPO_ROOT / "CONTRIBUTING.md"

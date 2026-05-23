@@ -34,11 +34,11 @@ If your submission is meant to be `import`-ed into someone else's network, it's 
 
 ## Step 1 — Fork and clone
 
-On GitHub, click **Fork** at the top right of [`celiasmith/nengo-zoo-test`](https://github.com/celiasmith/nengo-zoo-test). Then on your machine:
+On GitHub, click **Fork** at the top right of [`nengo/nengo-zoo`](https://github.com/nengo/nengo-zoo). Then on your machine:
 
 ```bash
-git clone https://github.com/<your-username>/nengo-zoo-test
-cd nengo-zoo-test
+git clone https://github.com/<your-username>/nengo-zoo
+cd nengo-zoo
 git checkout -b add-<your-submission-name>
 ```
 

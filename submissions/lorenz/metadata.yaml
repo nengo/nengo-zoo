@@ -15,8 +15,6 @@ description: >
   equations of the canonical Lorenz system, producing the characteristic
   two-lobe trajectory.
 
-discussion: 8
-
 tags:
   - attractor
   - chaos
@@ -36,10 +34,3 @@ paper:
   url: https://compneuro.uwaterloo.ca/publications/eliasmith2005b.html
 
 entry_point: lorenz.py
-
-zenodo:
-  concept_recid: 502429
-  concept_doi: "10.5072/zenodo.502429"
-  version_doi: "10.5072/zenodo.502430"
-  version_recid: 502430
-  version: "0.1.0"

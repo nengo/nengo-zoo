@@ -49,11 +49,3 @@ related:
   - thalamus
 
 # 'network' type: no entry_point — this is a subnetwork, not a standalone model.
-discussion: 9
-
-zenodo:
-  concept_recid: 502419
-  concept_doi: "10.5072/zenodo.502419"
-  version_doi: "10.5072/zenodo.502420"
-  version_recid: 502420
-  version: "0.1.0"
