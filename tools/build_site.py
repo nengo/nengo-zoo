@@ -441,6 +441,11 @@ def render(out_root: Path) -> int:
     (out_root / "index.html").write_text(index_html)
 
     # ----- Render per-submission pages + copy figures -----
+    # Names that actually have a page, so "Related" links self-heal: we only
+    # render a related link when that submission exists in the library
+    # (otherwise it 404s). A related: entry for a not-yet-added submission is
+    # dropped now and reappears automatically once that submission lands.
+    valid_names = {sub["name"] for sub in submissions}
     for s in submissions:
         sub_out = out_root / "submissions" / s["name"]
         sub_out.mkdir(parents=True, exist_ok=True)
@@ -496,6 +501,8 @@ def render(out_root: Path) -> int:
         # Build a render context with paths relative to this page's location.
         ctx = {
             **s,
+            # Only keep related links to submissions that actually exist.
+            "related": [r for r in s["related"] if r in valid_names],
             "figures": figures_rendered,
             "readme_html": readme_html,
             "download": download,
