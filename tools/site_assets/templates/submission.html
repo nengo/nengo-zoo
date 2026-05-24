@@ -10,7 +10,9 @@
     <a class="badge badge-type badge-type-{{ s.type }}"
        href="{{ home_path }}?type={{ s.type }}"
        title="browse all type={{ s.type }}">{{ s.type }}</a>
-    <span class="badge badge-complexity">{{ s.complexity }}</span>
+    <a class="badge badge-complexity"
+       href="{{ home_path }}?complexity={{ s.complexity }}"
+       title="browse all complexity={{ s.complexity }}">{{ s.complexity }}</a>
     {% if s.nengogui_ready %}
       <a class="badge badge-gui" href="{{ home_path }}?gui=1"
          title="browse NengoGUI-ready submissions">NengoGUI-ready</a>

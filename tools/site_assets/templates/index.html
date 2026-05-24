@@ -60,7 +60,10 @@
     </div>
     <p class="card-desc">{{ s.description }}</p>
     <div class="card-meta">
-      <span class="badge badge-complexity">{{ s.complexity }}</span>
+      <span class="badge badge-complexity"
+            data-filter-action="complexity" data-filter-value="{{ s.complexity }}"
+            role="button" tabindex="0"
+            title="filter: complexity = {{ s.complexity }}">{{ s.complexity }}</span>
       {% if s.nengogui_ready %}
         <span class="badge badge-gui"
               data-filter-action="gui" role="button" tabindex="0"
@@ -106,24 +109,26 @@
   const clearBtn   = document.getElementById('filter-clear');
 
   const COMPLEXITY_RANK = { beginner: 0, intermediate: 1, advanced: 2 };
-  const DEFAULT_STATE   = { q: '', type: 'all', gui: false, sort: 'name' };
+  const DEFAULT_STATE   = { q: '', type: 'all', complexity: 'all', gui: false, sort: 'name' };
 
   // ----- URL state plumbing -----
   function readURL() {
     const p = new URLSearchParams(window.location.search);
     return {
-      q:    p.get('q')    || '',
-      type: p.get('type') || 'all',
-      gui:  p.get('gui')  === '1',
-      sort: p.get('sort') || 'name',
+      q:          p.get('q')          || '',
+      type:       p.get('type')       || 'all',
+      complexity: p.get('complexity') || 'all',
+      gui:        p.get('gui')        === '1',
+      sort:       p.get('sort')       || 'name',
     };
   }
   function writeURL(state) {
     const p = new URLSearchParams();
-    if (state.q)              p.set('q',    state.q);
-    if (state.type !== 'all') p.set('type', state.type);
-    if (state.gui)            p.set('gui',  '1');
-    if (state.sort !== 'name') p.set('sort', state.sort);
+    if (state.q)                    p.set('q',          state.q);
+    if (state.type !== 'all')       p.set('type',       state.type);
+    if (state.complexity !== 'all') p.set('complexity', state.complexity);
+    if (state.gui)                  p.set('gui',        '1');
+    if (state.sort !== 'name')      p.set('sort',       state.sort);
     const qs = p.toString();
     const url = qs ? '?' + qs : window.location.pathname;
     history.replaceState(null, '', url);
@@ -132,7 +137,7 @@
   const state = readURL();
 
   function anyFilterActive() {
-    return state.q !== '' || state.type !== 'all' || state.gui || state.sort !== 'name';
+    return state.q !== '' || state.type !== 'all' || state.complexity !== 'all' || state.gui || state.sort !== 'name';
   }
 
   function sortKey(card) {
@@ -165,10 +170,18 @@
       const haystack = [c.dataset.name, c.dataset.description, c.dataset.tags].join(' ');
       const ok = (q === '' || haystack.includes(q))
               && (state.type === 'all' || c.dataset.type === state.type)
+              && (state.complexity === 'all' || c.dataset.complexity === state.complexity)
               && (!state.gui || c.dataset.gui === '1');
       c.hidden = !ok;
       if (ok) visible++;
     });
+    // Reflect the active complexity facet on its pills — there's no chip row
+    // for complexity, so this highlight is the only visible "it's filtered" cue.
+    grid.querySelectorAll('[data-filter-action="complexity"]').forEach(p => {
+      p.classList.toggle('is-active',
+        state.complexity !== 'all' && p.dataset.filterValue === state.complexity);
+    });
+
     countEl.textContent = visible;
     emptyEl.hidden = visible !== 0;
     clearBtn.hidden = !anyFilterActive();
@@ -216,6 +229,9 @@
     if (action === 'type') {
       state.type = value;
       chips.forEach(c => c.classList.toggle('is-active', c.dataset.typeFilter === value));
+    } else if (action === 'complexity') {
+      // No chip row for complexity, so clicking the active one again clears it.
+      state.complexity = (state.complexity === value) ? 'all' : value;
     } else if (action === 'tag') {
       state.q = value.toLowerCase();
       searchInp.value = value;

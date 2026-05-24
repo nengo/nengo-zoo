@@ -368,6 +368,11 @@ pre code { background: none; padding: 0; }
   border: 1px solid var(--border);
   font-size: 0.72rem;
 }
+.badge-complexity.is-active {
+  background: var(--fg);
+  color: var(--bg-card);
+  border-color: var(--fg);
+}
 
 .badge-gui {
   background: var(--accent-soft);
