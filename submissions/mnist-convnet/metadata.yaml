@@ -45,3 +45,4 @@ ci_runnable: false
 paper:
   citation: "Hunsberger, E. & Eliasmith, C. (2016). Training spiking deep networks for neuromorphic hardware."
   url: https://arxiv.org/abs/1611.05141
+discussion: 185

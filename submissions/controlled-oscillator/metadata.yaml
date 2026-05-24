@@ -30,3 +30,4 @@ backends:
 complexity: beginner
 
 entry_point: controlled_oscillator.py
+discussion: 181
