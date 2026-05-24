@@ -35,3 +35,10 @@ paper:
 
 entry_point: lorenz.py
 discussion: 184
+
+zenodo:
+  concept_recid: 503582
+  concept_doi: "10.5072/zenodo.503582"
+  version_doi: "10.5072/zenodo.503583"
+  version_recid: 503583
+  version: "0.1.0"
