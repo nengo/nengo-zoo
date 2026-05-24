@@ -53,3 +53,10 @@ nengogui:
   script: examples/nengogui/lamprey_model.py
   config: examples/nengogui/lamprey_model.py.cfg
 discussion: 182
+
+zenodo:
+  concept_recid: 20360766
+  concept_doi: "10.5281/zenodo.20360766"
+  version_doi: "10.5281/zenodo.20360767"
+  version_recid: 20360767
+  version: "0.1.0"

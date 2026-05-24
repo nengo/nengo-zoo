@@ -31,3 +31,10 @@ complexity: beginner
 
 entry_point: controlled_oscillator.py
 discussion: 181
+
+zenodo:
+  concept_recid: 20360764
+  concept_doi: "10.5281/zenodo.20360764"
+  version_doi: "10.5281/zenodo.20360765"
+  version_recid: 20360765
+  version: "0.1.0"
