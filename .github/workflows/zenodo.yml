@@ -6,9 +6,10 @@ name: Mint Zenodo DOIs
 # submission's metadata.yaml. The site then renders a "Cite this submission"
 # block from those fields.
 #
-# Currently points at Zenodo SANDBOX (throwaway DOIs). For the real launch,
-# swap ZENODO_BASE_URL to https://zenodo.org/api and the secret to a
-# production token.
+# Points at Zenodo PRODUCTION — DOIs minted here are permanent and cannot be
+# deleted. Needs the ZENODO_TOKEN secret (a zenodo.org personal token with
+# deposit:write + deposit:actions). pages.yml's build-time DOI lookup must point
+# at the same instance (zenodo.org/api).
 #
 # Two ways in:
 #   * workflow_run after "Auto-tag submissions" — when a version bump merges,
@@ -50,8 +51,8 @@ jobs:
 
       - name: Deposit new versions to Zenodo + write DOIs back
         env:
-          ZENODO_TOKEN: ${{ secrets.ZENODO_SANDBOX_TOKEN }}
-          ZENODO_BASE_URL: https://sandbox.zenodo.org/api
+          ZENODO_TOKEN: ${{ secrets.ZENODO_TOKEN }}
+          ZENODO_BASE_URL: https://zenodo.org/api
         run: python tools/sync_zenodo.py
 
       - name: Commit any newly-written DOIs

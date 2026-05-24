@@ -46,10 +46,3 @@ paper:
   citation: "Hunsberger, E. & Eliasmith, C. (2016). Training spiking deep networks for neuromorphic hardware."
   url: https://arxiv.org/abs/1611.05141
 discussion: 185
-
-zenodo:
-  concept_recid: 503584
-  concept_doi: "10.5072/zenodo.503584"
-  version_doi: "10.5072/zenodo.503585"
-  version_recid: 503585
-  version: "0.1.0"

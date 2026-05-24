@@ -69,11 +69,11 @@ jobs:
         # is set automatically by Actions and tells the script which repo
         # to query. ZENODO_BASE_URL enables the per-version DOI lookup (no
         # token needed — published records are public). All fall back
-        # gracefully if absent. Flip ZENODO_BASE_URL to https://zenodo.org/api
-        # at production cutover.
+        # gracefully if absent. ZENODO_BASE_URL points at PRODUCTION
+        # (zenodo.org/api) — must match the instance zenodo.yml deposits to.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ZENODO_BASE_URL: https://sandbox.zenodo.org/api
+          ZENODO_BASE_URL: https://zenodo.org/api
         run: python tools/build_site.py
 
       - name: Upload Pages artifact

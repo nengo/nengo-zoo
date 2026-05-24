@@ -50,10 +50,3 @@ related:
 
 # 'network' type: no entry_point — this is a subnetwork, not a standalone model.
 discussion: 180
-
-zenodo:
-  concept_recid: 503574
-  concept_doi: "10.5072/zenodo.503574"
-  version_doi: "10.5072/zenodo.503575"
-  version_recid: 503575
-  version: "0.1.0"
