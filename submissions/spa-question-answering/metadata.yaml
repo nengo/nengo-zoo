@@ -35,3 +35,10 @@ paper:
 
 entry_point: spa_question_answering.py
 discussion: 417
+
+zenodo:
+  concept_recid: 20479208
+  concept_doi: "10.5281/zenodo.20479208"
+  version_doi: "10.5281/zenodo.20479209"
+  version_recid: 20479209
+  version: "0.1.0"

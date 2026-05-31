@@ -44,3 +44,10 @@ related:
 
 entry_point: spa_routed_sequence_cleanup_all.py
 discussion: 422
+
+zenodo:
+  concept_recid: 20479221
+  concept_doi: "10.5281/zenodo.20479221"
+  version_doi: "10.5281/zenodo.20479222"
+  version_recid: 20479222
+  version: "0.1.0"

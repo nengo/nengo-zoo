@@ -40,3 +40,10 @@ related:
 
 entry_point: spa_question_answering_memory.py
 discussion: 418
+
+zenodo:
+  concept_recid: 20479215
+  concept_doi: "10.5281/zenodo.20479215"
+  version_doi: "10.5281/zenodo.20479216"
+  version_recid: 20479216
+  version: "0.1.0"
