@@ -1,0 +1,39 @@
+name: 2d-decision-integrator
+type: model
+version: 0.1.0
+
+authors:
+  - name: Chris Eliasmith
+    affiliation: University of Waterloo, CNRG
+    orcid: 0000-0001-6308-7339
+
+license: GPL-2.0-or-later
+
+description: >
+  A simple model of perceptual decision making built from a single
+  two-dimensional integrator. MT drives a noisy 2D LIP ensemble whose
+  recurrent feedback accumulates evidence in any direction; once the
+  integrator crosses an intercept threshold, an output ensemble spikes.
+  Companion to HBB chapter 8.
+
+tags:
+  - decision-making
+  - integrator
+  - perceptual-decision
+  - lip
+  - mt
+  - recurrent
+  - noise
+  - hbb-tutorial
+
+nengo_version: ">=3.2,<5"
+
+backends:
+  - core
+
+complexity: intermediate
+
+paper:
+  citation: "Eliasmith, C. (2013). How to Build a Brain: A Neural Architecture for Biological Cognition. Oxford University Press. Chapter 8."
+
+entry_point: 2d_decision_integrator.py
