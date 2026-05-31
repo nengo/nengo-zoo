@@ -119,6 +119,19 @@ A few rules of thumb:
 - **No global side effects on import.** Don't print, don't open files, don't start servers when someone `import`s your module.
 - **Pin reasonably.** `nengo>=3.2,<5` is a sensible default. If you need a specific Nengo version, say so.
 
+### Wrapping an existing implementation
+
+Many submissions are thin wrappers around an existing class — a curated, citation-rich, tested entry-point for code that lives elsewhere. (`basal-ganglia` wraps `nengo.networks.BasalGanglia`; `ssp-path-integrator` wraps `sspslam.networks.PathIntegration`; `probability-encoding` builds a focused API on top of Michael Furlong's summer-school tutorial.) A few patterns to follow when going this route:
+
+**Wrap or vendor?**
+
+- **Wrap** when the upstream is on PyPI or in a package that `pip install`s cleanly. Your `src/<name>/network.py` re-exports the class with a Zoo-shaped API and adds curated docstrings; `requirements.txt` pins the upstream. Best when the upstream maintainer keeps it healthy and you don't want a frozen copy that drifts.
+- **Vendor** (copy into `src/<name>/`) when the upstream isn't installable as a package (e.g. tutorial-style repos, raw scripts), the relevant code is small and self-contained, or you need a frozen reference implementation. Add a header comment crediting the source — see `submissions/probability-encoding/src/probability_encoding/fie_util.py` for the convention.
+
+**Off-PyPI dependencies are fine.** It's OK to depend on `git+https://github.com/...` URLs in `requirements.txt`. Pin to a commit or tag if you can — `main` can shift under you. Heavy non-core deps (CUDA, Loihi SDK) still want `ci_runnable: false` so CI does structure-only validation.
+
+**Upstream has no LICENSE?** Get explicit permission from the original author before vendoring, and call it out in your `LICENSE` file's notes block. Don't assume "open repo" means "open license"; the default for unlicensed code is *all rights reserved*.
+
 ## Step 5 — Write a good README
 
 The README is what people see on the website. Use this rough structure:
@@ -175,13 +188,48 @@ A maintainer will review for correctness, fit, and quality. They might suggest s
 - A Zenodo DOI is minted automatically for each released version. The DOIs are written into a bot-managed `zenodo:` block in your `metadata.yaml` and shown in a "Cite this submission" block on your detail page (see "How do I cite a submission?" below).
 - Future versions are easy: bump `version:` in metadata, update the code, open a follow-up PR. Each new version gets its own DOI under the same concept.
 
+## Common gotchas
+
+A few mistakes that have bitten contributors and don't show up clearly in error messages.
+
+**Instantiate subnetworks inside the parent model.** A `nengo.Network` subclass — the typical shape of a `network`-type submission — must be constructed inside a `with nengo.Network() as model:` block. Otherwise its nodes and ensembles live in their own free-standing namespace and connections from the outer model fail at build time with a confusing `"is not in the model, or has a size of zero"` error. Both your `examples/example_usage.py` and your `tests/test_runs.py` need to follow this pattern:
+
+```python
+with nengo.Network() as model:
+    sub = MyNetwork(...)              # ← inside, not outside
+    nengo.Connection(stim, sub.input)
+```
+
+**Dependencies that mutate matplotlib globals.** Some scientific Python packages (notably anything that imports `sspslam.utils.figure_utils`) set `mpl.rcParams["text.usetex"] = True` at import time. CI runners don't have LaTeX, so any plot you draw afterwards crashes. If your example produces a figure and you import such a dependency, reset usetex explicitly before drawing:
+
+```python
+import matplotlib
+matplotlib.use("Agg")
+matplotlib.rcParams["text.usetex"] = False
+import matplotlib.pyplot as plt
+```
+
+**Don't write `pip install nengo>=3.2` unquoted.** The shell parses `>=3.2` as a stdout redirect, silently creating a junk file named `=3.2` in your current directory. Always quote: `pip install "nengo>=3.2"`. The validator will eventually flag the stray file (it's not in your `MANIFEST`-like file set), but it's annoying.
+
+---
+
 ## Common questions
 
 **"What if my submission depends on something heavy like nengo_dl?"**
 Set `ci_runnable: false` in metadata. CI will validate structure only, your submission gets a "CI structure-only" badge, and the README is where you explain what users need to install themselves. See `mnist-convnet` for an example.
 
+**"How do I keep my example fast enough for CI?"**
+CI gives each `entry_point` a 60-second budget per Nengo version under test. Patterns that help:
+
+- Scale down representations (e.g. SSP dimension 64–128 rather than 2048).
+- Use fewer neurons per ensemble (50–500 rather than 1000+).
+- Keep simulation time short — 0.1–0.5 s is usually enough to demonstrate the dynamics.
+- Skip GIF/animation rendering in CI; ship a single static figure instead and let users run the full version locally.
+
+`basal-ganglia`, `ssp-path-integrator`, and `probability-encoding` are all scaled-down versions of much larger "real" configurations — their figure captions document the CI-sized parameters and what the high-performance setup looks like.
+
 **"Can I submit a Jupyter notebook?"**
-Yes. Ship it as a file alongside your other artifacts (it'll go into the download zip). For the canonical entry_point, prefer a `.py` script. CI doesn't run notebooks currently. The LMU submission has both.
+Yes — several submissions are built around one (`lmu`, `mnist-convnet`, `probability-encoding`). The pattern: place the `.ipynb` in `examples/` next to a CI-runnable `.py` entry point. The notebook ships in the download zip and is browsable on the website; the `.py` is what CI executes (notebooks aren't run by CI currently). It's fine if the notebook can't be run as-is from inside the submission — e.g. it expects sibling helper files you didn't vendor — as long as the `.py` is self-contained.
 
 **"My submission's tests fail in CI but pass locally."**
 Most often: stale Nengo decoder cache from a previous environment. Run `rm -rf ~/.cache/nengo` and try again.
