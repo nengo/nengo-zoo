@@ -1,0 +1,45 @@
+name: spa-question-answering-control
+type: model
+version: 0.1.0
+
+authors:
+  - name: Chris Eliasmith
+    affiliation: University of Waterloo, CNRG
+    orcid: 0000-0001-6308-7339
+
+license: GPL-2.0-or-later
+
+description: >
+  A Semantic Pointer Architecture question-answering model with basal-ganglia
+  action selection. STATEMENT inputs route the visual pointer into memory;
+  QUESTION inputs gate a motor read-out that unbinds memory with the cue.
+  Shows how spa.BasalGanglia and spa.Thalamus pick the right action.
+
+tags:
+  - spa
+  - semantic-pointers
+  - binding
+  - question-answering
+  - working-memory
+  - action-selection
+  - basal-ganglia
+  - thalamus
+  - cognitive
+  - hbb-tutorial
+
+nengo_version: ">=3.2,<5"
+
+backends:
+  - core
+
+complexity: advanced
+
+paper:
+  citation: "Eliasmith, C. (2013). How to Build a Brain: A Neural Architecture for Biological Cognition. Oxford University Press. Chapter 5."
+
+related:
+  - spa-question-answering
+  - spa-question-answering-memory
+  - basal-ganglia
+
+entry_point: spa_question_answering_control.py
