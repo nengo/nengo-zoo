@@ -96,6 +96,9 @@ def main():
     try:
         import matplotlib
         matplotlib.use("Agg")
+        # sspslam.utils.figure_utils unconditionally sets text.usetex=True at
+        # import time; undo that here so the example does not require LaTeX.
+        matplotlib.rcParams["text.usetex"] = False
         import matplotlib.pyplot as plt
 
         fig_dir = os.path.join(os.path.dirname(__file__), "..", "figures")
