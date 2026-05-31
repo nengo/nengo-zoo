@@ -38,7 +38,11 @@
         {% for f in s.figures %}
         <figure>
           <a href="{{ f.url }}"><img src="{{ f.url }}" alt="{{ f.name }}"></a>
-          <figcaption>{{ f.name }}</figcaption>
+          {% if f.caption_html %}
+            <figcaption>{{ f.caption_html | safe }}</figcaption>
+          {% else %}
+            <figcaption>{{ f.name }}</figcaption>
+          {% endif %}
         </figure>
         {% endfor %}
       </div>

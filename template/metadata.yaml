@@ -60,3 +60,7 @@ complexity: intermediate
 
 # OPTIONAL — for type=model, the headline script that reproduces the figure.
 # entry_point: examples/run.py
+
+# OPTIONAL — figures: any images dropped into figures/ are auto-collected
+# into the "Figures" section of your submission page. To add a caption,
+# create figures/<filename-stem>.md alongside the image (Markdown supported).

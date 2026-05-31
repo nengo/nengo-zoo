@@ -711,11 +711,13 @@ a.badge:hover { text-decoration: none; }
   border-radius: var(--radius);
 }
 .figures-grid figcaption {
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   color: var(--fg-faint);
-  margin-top: 0.3rem;
-  text-align: center;
+  margin-top: 0.4rem;
+  text-align: left;
 }
+.figures-grid figcaption p { margin: 0 0 0.4rem 0; }
+.figures-grid figcaption p:last-child { margin-bottom: 0; }
 
 /* ---------- Footer ---------- */
 

@@ -111,6 +111,7 @@ Where it goes:
 - **NengoGUI script** (at submission root, or under `examples/nengogui/`): a top-level `with nengo.Network() as model:` block. Required if you're a `model`-type submission unless you've set `ci_runnable: false`.
 - **Example** (`examples/example_usage.py` or whatever your `entry_point` is): a runnable demo. Should complete in under ~60 seconds wall-clock — CI runs it on every PR.
 - **Tests** (`tests/test_runs.py`): at minimum, three tests — `test_imports`, `test_builds`, `test_runs_100ms`. See existing submissions for the pattern.
+- **Figures** (`figures/`, optional): any images your example produces, plus an optional caption per figure. The site auto-collects every image under `figures/` into a "Figures" section on your submission page. To caption a figure, drop a Markdown file next to it with the same stem — e.g. `figures/selection.png` paired with `figures/selection.md`. Use the caption to explain what the figure shows, the parameters it was generated with, or anything a reader needs to interpret it. Without a sidecar, the figure renders with its filename as the label.
 
 A few rules of thumb:
 

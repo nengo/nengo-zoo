@@ -330,7 +330,17 @@ def load_submission(sub_dir: Path) -> dict:
     if figures_src.is_dir():
         for img in sorted(figures_src.iterdir()):
             if img.suffix.lower() in {".png", ".jpg", ".jpeg", ".svg", ".gif"}:
-                figures.append({"name": img.stem, "src": img, "filename": img.name})
+                caption_file = figures_src / f"{img.stem}.md"
+                caption_md = (
+                    caption_file.read_text(encoding="utf-8")
+                    if caption_file.exists() else None
+                )
+                figures.append({
+                    "name": img.stem,
+                    "src": img,
+                    "filename": img.name,
+                    "caption_md": caption_md,
+                })
 
     # Tested-on matrix (written by tools/run_matrix.py or by CI).
     tested_on = None
@@ -458,7 +468,15 @@ def render(out_root: Path) -> int:
             fig_out_dir.mkdir(exist_ok=True)
             for f in s["figures_src"]:
                 shutil.copy2(f["src"], fig_out_dir / f["filename"])
-                figures_rendered.append({"name": f["name"], "url": f"figures/{f['filename']}"})
+                caption_html = (
+                    markdown.markdown(f["caption_md"], extensions=MARKDOWN_EXTENSIONS)
+                    if f.get("caption_md") else None
+                )
+                figures_rendered.append({
+                    "name": f["name"],
+                    "url": f"figures/{f['filename']}",
+                    "caption_html": caption_html,
+                })
 
         # Build the Versions list: git tags are the authoritative set of
         # released versions; archive each into versions/<name>-<ver>.zip and
