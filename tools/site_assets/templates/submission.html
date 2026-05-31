@@ -104,6 +104,15 @@
       {% endfor %}
     </ul>
 
+    {% if s.dependencies %}
+    <h3>Dependencies</h3>
+    <ul>
+      {% for d in s.dependencies %}
+        <li><code>{{ d }}</code></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+
     <h3>Backends</h3>
     <ul>
       {% for b in s.backends %}

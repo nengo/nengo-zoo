@@ -522,7 +522,18 @@ a.badge:hover { text-decoration: none; }
   font-size: 0.88rem;
 }
 .sidebar dt { color: var(--fg-faint); }
-.sidebar dd { margin: 0; }
+.sidebar dd {
+  margin: 0;
+  /* Match the .download-btn's 1rem internal horizontal padding so values
+     have the same breathing room from the sidebar edge instead of kissing
+     (or overflowing past) it. */
+  padding-right: 1rem;
+}
+.sidebar dd code {
+  /* Long values like nested paths (e.g. examples/example_usage.py) wrap to a
+     second line inside the column rather than overflowing it. */
+  overflow-wrap: anywhere;
+}
 .sidebar ul {
   list-style: none;
   padding: 0;

@@ -359,6 +359,7 @@ def load_submission(sub_dir: Path) -> dict:
         "license":        meta["license"],
         "nengo_version":  meta["nengo_version"],
         "backends":       meta.get("backends", ["core"]),
+        "dependencies":   meta.get("dependencies", []),
         "complexity":     meta["complexity"],
         "authors":        meta.get("authors", []),
         "entry_point":    rendered_entry,
