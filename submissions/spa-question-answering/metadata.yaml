@@ -1,0 +1,36 @@
+name: spa-question-answering
+type: model
+version: 0.1.0
+
+authors:
+  - name: Chris Eliasmith
+    affiliation: University of Waterloo, CNRG
+    orcid: 0000-0001-6308-7339
+
+license: GPL-2.0-or-later
+
+description: >
+  A Semantic Pointer Architecture model that answers questions by binding
+  two attributes (colour and shape) into a single semantic pointer and
+  recovering one attribute given the other as a cue. A visual introduction
+  to circular-convolution binding and unbinding with spa.Cortical.
+
+tags:
+  - spa
+  - semantic-pointers
+  - binding
+  - question-answering
+  - cognitive
+  - hbb-tutorial
+
+nengo_version: ">=3.2,<5"
+
+backends:
+  - core
+
+complexity: intermediate
+
+paper:
+  citation: "Eliasmith, C. (2013). How to Build a Brain: A Neural Architecture for Biological Cognition. Oxford University Press. Chapter 5."
+
+entry_point: spa_question_answering.py
