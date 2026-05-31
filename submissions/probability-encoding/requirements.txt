@@ -1,0 +1,5 @@
+nengo>=3.2,<5
+numpy
+scipy
+matplotlib
+ssp-bayes-opt @ git+https://github.com/ctn-waterloo/ssp-bayesopt.git

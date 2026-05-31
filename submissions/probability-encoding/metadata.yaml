@@ -1,0 +1,39 @@
+name: probability-encoding
+type: network
+version: 0.1.0
+
+authors:
+  - name: Michael Furlong
+    affiliation: University of Waterloo, CNRG
+    orcid: 0000-0001-9503-8498
+
+license: GPL-2.0-or-later
+
+description: >
+  Spiking-neural estimator of a probability density. Trains a Spatial
+  Semantic Pointer mean encoding mu and a Function Inverse Estimator
+  normalization xi from samples, then drives a spiking ensemble whose
+  firing rate at the SSP-encoded query point approximates the PDF.
+
+tags:
+  - probability-density
+  - ssp
+  - vsa
+  - function-inverse-estimator
+  - density-estimation
+  - subnetwork
+
+nengo_version: ">=3.2,<5"
+
+backends:
+  - core
+
+dependencies:
+  - numpy
+  - scipy
+  - matplotlib
+  - ssp-bayes-opt @ git+https://github.com/ctn-waterloo/ssp-bayesopt.git
+
+complexity: advanced
+
+entry_point: examples/example_usage.py
