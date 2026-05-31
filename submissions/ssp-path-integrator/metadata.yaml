@@ -1,0 +1,47 @@
+name: ssp-path-integrator
+type: network
+version: 0.1.0
+
+authors:
+  - name: Nicole Dumont
+    affiliation: University of Waterloo, CNRG
+    email: ns2dumont@uwaterloo.ca
+    orcid: 0000-0001-5041-1527
+
+license: GPL-2.0-or-later
+
+description: >
+  A spiking neural path-integration subnetwork that continuously updates a
+  Spatial Semantic Pointer (SSP) representation of position from a velocity
+  signal, using velocity-controlled oscillators with attractor dynamics.
+  Wraps the implementation from Dumont et al. (2023).
+
+tags:
+  - path-integration
+  - ssp
+  - grid-cells
+  - velocity-controlled-oscillator
+  - navigation
+  - slam
+  - subnetwork
+
+nengo_version: ">=3.2,<5"
+
+backends:
+  - core
+
+dependencies:
+  - numpy
+  - scipy
+  - matplotlib
+  - nengo-loihi
+  - sspslam @ git+https://github.com/nsdumont/Semantic-Spiking-Neural-SLAM-2023.git
+
+complexity: advanced
+
+paper:
+  citation: "Dumont, N. S.-Y., Furlong, P. M., Orchard, J., & Eliasmith, C. (2023). Exploiting semantic information in a spiking neural SLAM system. Frontiers in Neuroscience, 17."
+  doi: 10.3389/fnins.2023.1190515
+  url: https://www.frontiersin.org/articles/10.3389/fnins.2023.1190515
+
+entry_point: examples/example_usage.py
