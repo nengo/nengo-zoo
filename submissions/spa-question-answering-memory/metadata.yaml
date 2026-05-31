@@ -1,0 +1,41 @@
+name: spa-question-answering-memory
+type: model
+version: 0.1.0
+
+authors:
+  - name: Chris Eliasmith
+    affiliation: University of Waterloo, CNRG
+    orcid: 0000-0001-6308-7339
+
+license: GPL-2.0-or-later
+
+description: >
+  A Semantic Pointer Architecture question-answering model that holds the
+  bound colour-shape pair in a recurrent memory state, then unbinds with a
+  cue presented after the inputs have gone quiet. Extends the plain SPA
+  question-answering example with a spa.State(feedback=1) working memory.
+
+tags:
+  - spa
+  - semantic-pointers
+  - binding
+  - question-answering
+  - working-memory
+  - recurrent
+  - cognitive
+  - hbb-tutorial
+
+nengo_version: ">=3.2,<5"
+
+backends:
+  - core
+
+complexity: intermediate
+
+paper:
+  citation: "Eliasmith, C. (2013). How to Build a Brain: A Neural Architecture for Biological Cognition. Oxford University Press. Chapter 5."
+
+related:
+  - spa-question-answering
+
+entry_point: spa_question_answering_memory.py
