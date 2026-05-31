@@ -541,6 +541,20 @@ a.badge:hover { text-decoration: none; }
   display: flex;
   flex-wrap: wrap;
   gap: 0.3rem;
+  /* Same 1rem right inset as .sidebar dd / .download-btn content, so a long
+     pill can't kiss (or overflow past) the sidebar edge. */
+  padding-right: 1rem;
+}
+.sidebar ul li {
+  /* Let a flex item shrink below its content's natural width — required for
+     the inner code to wrap instead of pushing the item past the container. */
+  min-width: 0;
+  max-width: 100%;
+}
+.sidebar ul li code {
+  /* Long values (e.g. a "pkg @ git+https://…" dependency) wrap inside the
+     pill rather than overflowing the column. */
+  overflow-wrap: anywhere;
 }
 
 /* ---------- Tested-on block (sidebar) ---------- */
