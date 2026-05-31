@@ -1,0 +1,45 @@
+name: spa-routed-sequence-cleanup-all
+type: model
+version: 0.1.0
+
+authors:
+  - name: Chris Eliasmith
+    affiliation: University of Waterloo, CNRG
+    orcid: 0000-0001-6308-7339
+
+license: GPL-2.0-or-later
+
+description: >
+  A Semantic Pointer Architecture model that cycles a state vector through a
+  five-step sequence (A → B → C → D → E → A) under basal-ganglia / thalamus
+  action selection, and continuously projects the state onto a cleanup
+  ensemble that lights up whichever vocabulary element the state currently
+  matches. Companion to the routed-sequencing examples in HBB chapter 7.
+
+tags:
+  - spa
+  - semantic-pointers
+  - sequence
+  - routed-sequencing
+  - action-selection
+  - basal-ganglia
+  - thalamus
+  - cleanup-memory
+  - cognitive
+  - hbb-tutorial
+
+nengo_version: ">=3.2,<5"
+
+backends:
+  - core
+
+complexity: advanced
+
+paper:
+  citation: "Eliasmith, C. (2013). How to Build a Brain: A Neural Architecture for Biological Cognition. Oxford University Press. Chapter 7."
+
+related:
+  - basal-ganglia
+  - spa-question-answering-control
+
+entry_point: spa_routed_sequence_cleanup_all.py
