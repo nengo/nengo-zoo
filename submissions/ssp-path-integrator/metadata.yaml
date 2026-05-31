@@ -46,3 +46,10 @@ paper:
 
 entry_point: examples/example_usage.py
 discussion: 302
+
+zenodo:
+  concept_recid: 20477783
+  concept_doi: "10.5281/zenodo.20477783"
+  version_doi: "10.5281/zenodo.20477784"
+  version_recid: 20477784
+  version: "0.1.0"
