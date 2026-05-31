@@ -37,3 +37,4 @@ paper:
   citation: "Eliasmith, C. (2013). How to Build a Brain: A Neural Architecture for Biological Cognition. Oxford University Press. Chapter 8."
 
 entry_point: 2d_decision_integrator.py
+discussion: 423
