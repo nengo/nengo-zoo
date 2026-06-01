@@ -1,0 +1,42 @@
+name: nengo-a2c
+type: network
+version: 0.1.0
+
+authors:
+  - name: Maddy Bartlett
+    orcid: 0000-0003-1084-0938
+
+license: LicenseRef-ABR-Academic-Use-Only
+
+description: >
+  A spiking Actor-Critic reinforcement learning network from Bartlett et al.
+  (2022). Pairs a pluggable state representation, TD learning rule, and an
+  optional Legendre-Delay-Network memory of past rewards and values to learn
+  policies over continuous state spaces. Vendored from upstream rlnet/.
+
+tags:
+  - reinforcement-learning
+  - actor-critic
+  - td-learning
+  - ldn
+  - legendre-memory-unit
+  - decision-making
+  - learning-rule
+
+nengo_version: ">=3.2,<5"
+
+backends:
+  - core
+
+dependencies:
+  - numpy>=1.20
+  - scipy
+
+complexity: advanced
+
+paper:
+  citation: "Bartlett, M., Simone, K., Dumont, N. S.-Y., Furlong, P., Eliasmith, C., Orchard, J., & Stewart, T. (2022). Improving Reinforcement Learning with Biologically Motivated Continuous State Representations. Proceedings of the 20th International Conference on Cognitive Modeling (ICCM)."
+  url: https://mathpsych.org/presentation/1221
+
+related:
+  - lmu
