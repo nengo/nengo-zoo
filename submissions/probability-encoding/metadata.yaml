@@ -38,3 +38,10 @@ complexity: advanced
 
 entry_point: examples/example_usage.py
 discussion: 1126
+
+zenodo:
+  concept_recid: 20500126
+  concept_doi: "10.5281/zenodo.20500126"
+  version_doi: "10.5281/zenodo.20500127"
+  version_recid: 20500127
+  version: "0.1.0"
