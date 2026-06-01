@@ -1,0 +1,14 @@
+SPDX-License-Identifier: GPL-2.0-or-later
+
+This submission is licensed under the GNU General Public License v2.0 or later.
+
+Full license text: https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
+
+Real submissions to the NengoZoo MUST include the full text of the GPLv2
+license in this file (or substitute an alternative GPL-compatible license,
+declared in metadata.yaml). This prototype keeps it brief for readability.
+
+Note: src/probability_encoding/fie_util.py and src/probability_encoding/ssp_util.py
+are vendored from the ctn-waterloo/summerschool2025 tutorial materials by
+Michael Furlong. The upstream repository carries no LICENSE; the code is
+included here under GPL-2.0-or-later with the author's permission.
