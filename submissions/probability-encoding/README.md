@@ -29,13 +29,6 @@ pip install -r requirements.txt
 
 The SSP encoder comes from `ctn-waterloo/ssp-bayesopt` (Michael Furlong's `ssp-bayes-opt` package; the SSP classes live under `ssp_bayes_opt.sspspace`). It is not on PyPI, hence the `git+https://…` install.
 
-> ⚠️ **Temporary install workaround.** Upstream `ssp-bayes-opt`'s `pyproject.toml` is currently missing a hatchling flag that lets it parse direct-URL references in its `nas` optional-deps group, so `pip install` fails out of the box. The one-line fix is pending review at [ctn-waterloo/ssp-bayesopt#3](https://github.com/ctn-waterloo/ssp-bayesopt/pull/3). Until it merges, install from the fix branch instead:
->
-> ```bash
-> pip install nengo scipy matplotlib
-> pip install "ssp-bayes-opt @ git+https://github.com/celiasmith/ssp-bayesopt.git@fix/allow-direct-references"
-> ```
-
 ## Usage
 
 ```python
