@@ -78,6 +78,37 @@ def main():
     print(f"Improvement: {late - early:+.3f}")
     print(f"State value at start (0,0): {ac.step((0, 0), 0, 0.0)[0][0]:+.3f}")
 
+    try:
+        from pathlib import Path
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+
+        fig_dir = Path(__file__).resolve().parent.parent / "figures"
+        fig_dir.mkdir(exist_ok=True)
+
+        episodes = np.arange(1, n + 1)
+        # 10-episode rolling mean to make the trend legible.
+        window = 10
+        kernel = np.ones(window) / window
+        smoothed = np.convolve(rewards, kernel, mode="valid")
+        x_smoothed = np.arange(window, n + 1)
+
+        fig, ax = plt.subplots(figsize=(7, 3.5))
+        ax.plot(episodes, rewards, color="C0", alpha=0.35, lw=0.9, label="per-episode reward")
+        ax.plot(x_smoothed, smoothed, color="C0", lw=2.0, label=f"{window}-episode rolling mean")
+        ax.axhline(0, color="k", lw=0.5)
+        ax.set_xlabel("episode")
+        ax.set_ylabel("total return")
+        ax.set_title("ActorCritic + TD(0) on a 5×5 gridworld")
+        ax.legend(loc="lower right", fontsize=8)
+        fig.tight_layout()
+        fig.savefig(fig_dir / "learning_curve.png", dpi=110)
+        plt.close(fig)
+        print(f"Saved {fig_dir / 'learning_curve.png'}")
+    except ImportError:
+        print("matplotlib not available — skipping plot.")
+
 
 if __name__ == "__main__":
     main()

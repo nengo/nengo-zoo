@@ -83,3 +83,58 @@ with model:
     # Note that the first item in the vocabulary (`START`) is ignored.
     for i in range(1, vsize):
         nengo.Connection(model.state.output, model.cleanup[i], transform=pd[i])
+
+    # Probes for the headline figure (harmless for NengoGUI).
+    p_state = nengo.Probe(model.state.output, synapse=0.03)
+    p_cleanup = nengo.Probe(model.cleanup, synapse=0.03)
+
+
+if __name__ == "__main__":
+    from pathlib import Path
+
+    sim_T = 1.5
+    with nengo.Simulator(model) as sim:
+        sim.run(sim_T)
+
+    # Plot similarity of state to the sequence elements A..E.
+    seq = ["A", "B", "C", "D", "E"]
+    V = np.stack([vocab[k].v for k in seq])
+    t = sim.trange()
+
+    try:
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+
+        fig_dir = Path(__file__).resolve().parent / "figures"
+        fig_dir.mkdir(exist_ok=True)
+
+        fig, axs = plt.subplots(2, 1, figsize=(8, 5), sharex=True)
+
+        state_sims = sim.data[p_state] @ V.T
+        for i, k in enumerate(seq):
+            axs[0].plot(t, state_sims[:, i], label=k, lw=0.9)
+        axs[0].set_ylabel("similarity")
+        axs[0].set_title("state — decoded similarity to A..E")
+        axs[0].legend(loc="upper right", fontsize=7, ncol=5)
+        axs[0].set_xlim(0, sim_T)
+
+        # Cleanup ensemble: each dimension corresponds to one vocab element.
+        cleanup = sim.data[p_cleanup]
+        # Drop the START dim at index 0; the connections in the script also skip it.
+        for i, k in enumerate(vocab_items):
+            if k == "START":
+                continue
+            axs[1].plot(t, cleanup[:, i], label=k, lw=0.9)
+        axs[1].set_xlabel("time (s)")
+        axs[1].set_ylabel("cleanup activity")
+        axs[1].set_title("cleanup ensemble — one dimension per vocab element")
+        axs[1].legend(loc="upper right", fontsize=7, ncol=5)
+        axs[1].set_xlim(0, sim_T)
+
+        fig.tight_layout()
+        fig.savefig(fig_dir / "sequence_dynamics.png", dpi=110)
+        plt.close(fig)
+        print(f"Saved {fig_dir / 'sequence_dynamics.png'}")
+    except ImportError:
+        print("matplotlib not available — skipping plot.")
