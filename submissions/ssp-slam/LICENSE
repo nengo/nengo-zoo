@@ -1,0 +1,13 @@
+SPDX-License-Identifier: GPL-2.0-or-later
+
+This submission is licensed under the GNU General Public License v2.0 or later.
+
+Full license text: https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
+
+Real submissions to the NengoZoo MUST include the full text of the GPLv2
+license in this file (or substitute an alternative GPL-compatible license,
+declared in metadata.yaml). This prototype keeps it brief for readability.
+
+Note: this wrapper depends on the `sspslam` package by Nicole Dumont
+(https://github.com/nsdumont/Semantic-Spiking-Neural-SLAM-2023), distributed
+under its own license terms (Apache-2.0 per the upstream README).
