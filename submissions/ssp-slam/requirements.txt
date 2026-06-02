@@ -1,0 +1,6 @@
+nengo>=3.2,<5
+numpy
+scipy
+matplotlib
+nengo-loihi
+sspslam @ git+https://github.com/nsdumont/Semantic-Spiking-Neural-SLAM-2023.git

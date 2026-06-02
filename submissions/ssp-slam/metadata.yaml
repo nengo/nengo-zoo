@@ -1,0 +1,51 @@
+name: ssp-slam
+type: network
+version: 0.1.0
+
+authors:
+  - name: Nicole Dumont
+    affiliation: University of Waterloo, CNRG
+    email: ns2dumont@uwaterloo.ca
+    orcid: 0000-0001-5041-1527
+
+license: GPL-2.0-or-later
+
+description: >
+  A spiking neural SLAM subnetwork that continuously integrates a velocity
+  signal into a Spatial Semantic Pointer estimate of self-position,
+  corrects the estimate on landmark sightings, and learns a semantic
+  associative memory mapping landmark identities to SSP locations.
+  Wraps the SLAMNetwork from Dumont et al. (2023).
+
+tags:
+  - slam
+  - ssp
+  - path-integration
+  - grid-cells
+  - associative-memory
+  - semantic-pointers
+  - subnetwork
+
+nengo_version: ">=3.2,<5"
+
+backends:
+  - core
+
+dependencies:
+  - numpy
+  - scipy
+  - matplotlib
+  - nengo-loihi
+  - sspslam @ git+https://github.com/nsdumont/Semantic-Spiking-Neural-SLAM-2023.git
+
+complexity: advanced
+
+paper:
+  citation: "Dumont, N. S.-Y., Furlong, P. M., Orchard, J., & Eliasmith, C. (2023). Exploiting semantic information in a spiking neural SLAM system. Frontiers in Neuroscience, 17."
+  doi: 10.3389/fnins.2023.1190515
+  url: https://www.frontiersin.org/articles/10.3389/fnins.2023.1190515
+
+related:
+  - ssp-path-integrator
+
+entry_point: examples/example_usage.py
