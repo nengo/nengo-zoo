@@ -33,7 +33,7 @@ SEED = 11     # Hand-picked from a small sweep of white-signal seeds.
               # triangle and square at distinct corners), which makes the
               # "All triangles" compositional query in figures/
               # visibly two-peaked.
-T = 10.0
+T = 8.0
 DT = 0.001
 TIMESTEPS = int(T / DT)
 VIEW_RAD = 0.3
