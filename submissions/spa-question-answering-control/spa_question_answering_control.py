@@ -61,3 +61,68 @@ with model:
 
     # Inputs
     model.input = spa.Input(visual=visual_input)
+
+    # Probes for the headline figure (harmless for NengoGUI).
+    p_visual = nengo.Probe(model.visual.output, synapse=0.03)
+    p_memory = nengo.Probe(model.memory.output, synapse=0.03)
+    p_motor = nengo.Probe(model.motor.output, synapse=0.03)
+
+
+if __name__ == "__main__":
+    from pathlib import Path
+
+    sim_T = 1.0
+    with nengo.Simulator(model) as sim:
+        sim.run(sim_T)
+
+    # Atomic vocab vectors (one-hots) and the two bound pairs that get stored.
+    atomic = ["RED", "BLUE", "CIRCLE", "SQUARE", "STATEMENT", "QUESTION"]
+    bound = ["RED*CIRCLE", "BLUE*SQUARE"]
+
+    def vocab_vec(key):
+        return vocab.parse(key).v
+
+    V_atomic = np.stack([vocab_vec(k) for k in atomic])
+    V_bound = np.stack([vocab_vec(k) for k in bound])
+    t = sim.trange()
+
+    try:
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+
+        fig_dir = Path(__file__).resolve().parent / "figures"
+        fig_dir.mkdir(exist_ok=True)
+
+        fig, axs = plt.subplots(3, 1, figsize=(8, 6), sharex=True)
+
+        sims_v = sim.data[p_visual] @ V_atomic.T
+        for i, k in enumerate(atomic):
+            axs[0].plot(t, sims_v[:, i], label=k, lw=0.9)
+        axs[0].set_ylabel("similarity")
+        axs[0].set_title("visual input")
+        axs[0].legend(loc="upper right", fontsize=7, ncol=3)
+
+        sims_m = sim.data[p_memory] @ V_bound.T
+        for i, k in enumerate(bound):
+            axs[1].plot(t, sims_m[:, i], label=k, lw=0.9)
+        axs[1].set_ylabel("similarity")
+        axs[1].set_title("memory — bound-pair contents")
+        axs[1].legend(loc="upper right", fontsize=7)
+
+        sims_mo = sim.data[p_motor] @ V_atomic[:4].T  # only colour & shape
+        for i, k in enumerate(atomic[:4]):
+            axs[2].plot(t, sims_mo[:, i], label=k, lw=0.9)
+        axs[2].set_ylabel("similarity")
+        axs[2].set_title("motor — answer to the most recent question")
+        axs[2].legend(loc="upper right", fontsize=7, ncol=4)
+        axs[2].set_xlabel("time (s)")
+        for ax in axs:
+            ax.set_xlim(0, sim_T)
+
+        fig.tight_layout()
+        fig.savefig(fig_dir / "qa_control_dynamics.png", dpi=110)
+        plt.close(fig)
+        print(f"Saved {fig_dir / 'qa_control_dynamics.png'}")
+    except ImportError:
+        print("matplotlib not available — skipping plot.")
