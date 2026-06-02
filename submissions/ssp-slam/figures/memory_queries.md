@@ -4,7 +4,7 @@ After training, the memory has learned a mapping `landmark_SP → SSP_location` 
 
 **Left — "Blue triangle"** (`bind(triangle_SP, blue_SP)`): a tight peak at the blue-triangle landmark in the middle-left of the domain.
 
-**Middle — "All triangles"** (`bind(triangle_SP, blue_SP + orange_SP)`): the peak still anchors at the blue triangle, but a second region of high similarity emerges at the orange triangle in the upper-right — the memory has identified both triangular objects via SP algebra applied at query time.
+**Middle — "All triangles"** (`bind(triangle_SP, blue_SP + orange_SP)`): the peak anchors at the blue triangle, then extends through the centre out to the orange triangle in the lower-right — the memory has identified both triangular objects via SP algebra applied at query time.
 
 **Right — "All blues"** (`bind(triangle_SP + square_SP, blue_SP)`): a single peak at the blue triangle (the only blue object in the scene).
 

@@ -27,15 +27,20 @@ from scipy.integrate import dblquad
 from ssp_slam import SSPSlam
 
 
-SEED = 11     # Hand-picked from a small sweep of white-signal seeds.
-              # Trades a small reduction in per-landmark view-time for a
-              # spatially well-spread item layout (blue triangle, orange
-              # triangle and square at distinct corners), which makes the
-              # "All triangles" compositional query in figures/
-              # visibly two-peaked.
+SEED = 11     # Hand-picked from a small sweep of white-signal seeds at
+              # PATH_PERIOD=10 s: spatially well-spread item layout (blue
+              # triangle, orange triangle, orange square at distinct
+              # regions of the domain) so the "All triangles" compositional
+              # memory query reads as two-peaked.
 T = 8.0
+PATH_PERIOD = 10.0  # Period of the WhiteSignal path generators. Held
+                    # constant so the path *shape* and item placement
+                    # depend only on (PATH_PERIOD, high, seed), independent
+                    # of T. T just controls how much of that fixed path is
+                    # actually run.
 DT = 0.001
 TIMESTEPS = int(T / DT)
+PERIOD_STEPS = int(PATH_PERIOD / DT)
 VIEW_RAD = 0.3
 DOMAIN_HALF = 0.85   # path stays within (-0.85, 0.85)
 PI_N_NEURONS = 200
@@ -44,9 +49,13 @@ MEM_N_NEURONS_PER_DIM = 10  # mem_n_neurons = MEM_N_NEURONS_PER_DIM * ssp_dim
 
 
 def make_environment(ssp_space, path):
-    """3 objects placed on the path, 1 wall placed near it."""
+    """3 objects placed on the path, 1 wall placed near it.
+
+    Item indices are into the *full* period (PERIOD_STEPS), so the same
+    seed gives the same item layout regardless of T.
+    """
     d = ssp_space.ssp_dim
-    item_idxs = [int(TIMESTEPS * f) for f in (0.25, 0.5, 0.75)]
+    item_idxs = [int(PERIOD_STEPS * f) for f in (0.25, 0.5, 0.75)]
     item_locations = path[item_idxs]
 
     item_shapes = ["^", "s", "^"]
@@ -65,8 +74,9 @@ def make_environment(ssp_space, path):
     )
 
     # Place one wall just past the midpoint of the path, offset so the
-    # agent passes alongside (not through) it.
-    wall_center = path[int(TIMESTEPS * 0.62)]
+    # agent passes alongside (not through) it. Indexed into the full
+    # period for the same T-independence as the items.
+    wall_center = path[int(PERIOD_STEPS * 0.62)]
     offset = np.array([0.18, 0.12])
     wall_w, wall_h = 0.18, 0.18
     cx, cy = wall_center[0] + offset[0], wall_center[1] + offset[1]
@@ -129,14 +139,20 @@ def main():
     d = ssp_space.ssp_dim
     print(f"ssp_dim = {d}")
 
-    # 2. Seeded white-signal path, shifted to (-DOMAIN_HALF, DOMAIN_HALF).
-    path = np.hstack([
-        nengo.processes.WhiteSignal(T, high=0.5, seed=SEED).run(T, dt=DT),
-        nengo.processes.WhiteSignal(T, high=0.5, seed=SEED + 1).run(T, dt=DT),
+    # 2. Seeded white-signal path. We generate the *full* PATH_PERIOD,
+    # normalise it into the domain, then truncate to T. Doing both steps
+    # over the full period means the path shape and normalisation depend
+    # only on (PATH_PERIOD, high, seed), not on T.
+    full_path = np.hstack([
+        nengo.processes.WhiteSignal(PATH_PERIOD, high=0.5, seed=SEED).run(
+            PATH_PERIOD, dt=DT),
+        nengo.processes.WhiteSignal(PATH_PERIOD, high=0.5, seed=SEED + 1).run(
+            PATH_PERIOD, dt=DT),
     ])
     for i in range(2):
-        lo, hi = path[:, i].min(), path[:, i].max()
-        path[:, i] = (path[:, i] - lo) / (hi - lo) * (2 * DOMAIN_HALF) - DOMAIN_HALF
+        lo, hi = full_path[:, i].min(), full_path[:, i].max()
+        full_path[:, i] = (full_path[:, i] - lo) / (hi - lo) * (2 * DOMAIN_HALF) - DOMAIN_HALF
+    path = full_path[:TIMESTEPS]
 
     real_ssp = ssp_space.encode(path)
     real_inv_ssp = ssp_space.invert(real_ssp)
