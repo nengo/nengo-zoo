@@ -46,7 +46,7 @@ if __name__ == "__main__":
 
     def speed_program(t):
         if t < 3.0:
-            return 0.0          # at rest
+            return 0.3          # slow forward
         if t < 7.0:
             return 0.6          # spin up
         if t < 11.0:
@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
         ax_speed.plot(t, speeds, color="k", lw=1.0)
         ax_speed.set_ylabel("speed input")
-        ax_speed.set_title("Speed program — 0 → +0.6 → 0 → −0.6")
+        ax_speed.set_title("Speed program — +0.3 → +0.6 → 0 → −0.6")
         ax_speed.set_xlim(0, t[-1])
 
         ax_state.plot(t, traj[:, 0], lw=0.6, label="$x_0$")
@@ -91,8 +91,8 @@ if __name__ == "__main__":
 
         # Phase portrait, segments coloured by speed regime.
         bounds = [0.0, 3.0, 7.0, 11.0, t[-1]]
-        labels = ["rest", "spin up (s=+0.6)", "halt", "reverse (s=−0.6)"]
-        colors = ["#888888", "#1f77b4", "#444444", "#d62728"]
+        labels = ["slow forward (s=+0.3)", "spin up (s=+0.6)", "halt", "reverse (s=−0.6)"]
+        colors = ["#7fbfff", "#1f77b4", "#888888", "#d62728"]
         for lo, hi, lab, col in zip(bounds[:-1], bounds[1:], labels, colors):
             m = (t >= lo) & (t < hi)
             ax_phase.plot(traj[m, 0], traj[m, 1], color=col, lw=0.8, label=lab)
