@@ -27,7 +27,9 @@ from scipy.integrate import dblquad
 from ssp_slam import SSPSlam
 
 
-SEED = 0
+SEED = 25     # Hand-picked for balanced landmark-visibility times on the
+              # white-signal path: each of the 3 items is in view of the
+              # agent for >=1.4 s, giving Voja/PES enough time to learn.
 T = 10.0
 DT = 0.001
 TIMESTEPS = int(T / DT)
