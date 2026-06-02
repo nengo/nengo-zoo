@@ -1,4 +1,4 @@
-Learning curve from the headline `examples/example_usage.py` run — an `ActorCritic` with one-hot state representation and a `TD(0)` learning rule trained for 80 episodes on a 5×5 gridworld (goal at (4, 4), -0.01 per step, +1 at the goal). Action selection is softmax with temperature 0.3.
+Learning curve from the `examples/example_usage.py` script — an `ActorCritic` with one-hot state representation and a `TD(0)` learning rule trained for 80 episodes on a 5×5 gridworld (goal at (4, 4), -0.01 per step, +1 at the goal). Action selection is softmax with temperature 0.3.
 
 Light line: per-episode total return. Bold line: 10-episode rolling mean.
 
