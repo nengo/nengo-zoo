@@ -50,3 +50,10 @@ related:
 
 entry_point: examples/example_usage.py
 discussion: 1224
+
+zenodo:
+  concept_recid: 20515052
+  concept_doi: "10.5281/zenodo.20515052"
+  version_doi: "10.5281/zenodo.20515053"
+  version_recid: 20515053
+  version: "0.1.0"
