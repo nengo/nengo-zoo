@@ -27,9 +27,12 @@ from scipy.integrate import dblquad
 from ssp_slam import SSPSlam
 
 
-SEED = 25     # Hand-picked for balanced landmark-visibility times on the
-              # white-signal path: each of the 3 items is in view of the
-              # agent for >=1.4 s, giving Voja/PES enough time to learn.
+SEED = 11     # Hand-picked from a small sweep of white-signal seeds.
+              # Trades a small reduction in per-landmark view-time for a
+              # spatially well-spread item layout (blue triangle, orange
+              # triangle and square at distinct corners), which makes the
+              # "All triangles" compositional query in figures/
+              # visibly two-peaked.
 T = 10.0
 DT = 0.001
 TIMESTEPS = int(T / DT)
