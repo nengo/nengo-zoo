@@ -1,6 +1,6 @@
 name: probability-encoding
 type: network
-version: 0.1.0
+version: 0.1.1
 
 authors:
   - name: Michael Furlong
@@ -37,6 +37,14 @@ dependencies:
 complexity: advanced
 
 entry_point: examples/example_usage.py
+
+# NengoGUI demo: spiking population whose firing rates trace a 1-D GMM
+# density (the v0.2.0 ProbabilityEncoder in population mode, applied to
+# cell 22 of Furlong's "Probability Encodings — Spiking Implementation"
+# notebook). Earns the nengogui-ready badge.
+nengogui:
+  script: examples/nengogui/gmm_population.py
+
 discussion: 1126
 
 zenodo:
