@@ -1,4 +1,5 @@
-nengo
+nengo>=3.2,<5
 nengo-gui
 numpy
 sounddevice
+matplotlib  # nengo's pytest plugin imports matplotlib at test collection time
