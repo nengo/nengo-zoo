@@ -45,3 +45,10 @@ paper:
 related:
   - lmu
 discussion: 743
+
+zenodo:
+  concept_recid: 20648917
+  concept_doi: "10.5281/zenodo.20648917"
+  version_doi: "10.5281/zenodo.20648918"
+  version_recid: 20648918
+  version: "0.2.1"
