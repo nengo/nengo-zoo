@@ -52,6 +52,11 @@
       "description": "SPDX license identifier. Default: GPL-2.0-or-later (matches Nengo).",
       "examples": ["GPL-2.0-or-later", "GPL-3.0-or-later", "MIT", "BSD-3-Clause"]
     },
+    "zenodo_license": {
+      "type": "string",
+      "description": "Override for the Zenodo deposition license. Zenodo's legacy deposit API only accepts ids from its controlled vocabulary (see https://zenodo.org/api/licenses), so submissions whose real SPDX `license` is a `LicenseRef-...` custom identifier need to map onto something Zenodo recognises. Closest catch-alls: 'other-open' (open, not in vocab), 'other-nc' (non-commercial), 'other-closed' (proprietary), 'other-pd' (public-domain), 'other-at' (attribution).",
+      "examples": ["other-nc", "other-closed", "other-open"]
+    },
     "description": {
       "type": "string",
       "minLength": 30,

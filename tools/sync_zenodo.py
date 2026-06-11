@@ -134,9 +134,17 @@ def zenodo_metadata(meta: dict) -> dict:
         "keywords": meta.get("tags", []) or [],
         "access_right": "open",
     }
-    # Zenodo (InvenioRDM) expects SPDX license ids in lower case. Best-effort:
-    # if the id is wrong the metadata PUT will fail loudly and we adjust.
-    if meta.get("license"):
+    # Zenodo (InvenioRDM) expects an id from its controlled licenses vocabulary
+    # (https://zenodo.org/api/licenses) — lowercased SPDX ids work for most of
+    # the common ones, but `LicenseRef-...` SPDX custom identifiers are not
+    # accepted. Submissions whose real license needs a non-SPDX deposit id can
+    # set `zenodo_license:` in metadata.yaml to override (e.g. `other-nc` for
+    # academic-use-only / non-commercial licenses); otherwise we fall back to
+    # the plain `license:` field, which we just lowercase.
+    license_override = meta.get("zenodo_license")
+    if license_override:
+        md["license"] = str(license_override).lower()
+    elif meta.get("license"):
         md["license"] = str(meta["license"]).lower()
     return md
 

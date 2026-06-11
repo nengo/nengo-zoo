@@ -1,12 +1,16 @@
 name: nengo-a2c
 type: network
-version: 0.2.0
+version: 0.2.1
 
 authors:
   - name: Maddy Bartlett
     orcid: 0000-0003-1084-0938
 
 license: LicenseRef-ABR-Academic-Use-Only
+# Zenodo's legacy deposit API rejects `LicenseRef-...` SPDX custom ids;
+# `other-nc` (Non-Commercial) is the closest match in Zenodo's controlled
+# vocabulary for ABR Academic Use Only.
+zenodo_license: other-nc
 
 description: >
   A spiking Actor-Critic reinforcement learning network from Bartlett et al.
