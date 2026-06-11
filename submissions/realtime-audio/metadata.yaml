@@ -1,0 +1,43 @@
+name: realtime-audio
+type: model
+version: 0.1.0
+
+authors:
+  - name: Chris Eliasmith
+    affiliation: University of Waterloo, CNRG
+    orcid: 0000-0001-6308-7339
+
+license: GPL-2.0-or-later
+
+description: >
+  A NengoGUI-first model that captures live microphone audio with
+  `sounddevice` and injects it into a spiking ensemble. The microphone
+  always feeds the most recent window of audio into the network, so the
+  display stays live regardless of simulation speed. Cross-platform
+  (macOS, Windows, Linux) — the only OS-specific touch is granting your
+  terminal access to the microphone.
+
+tags:
+  - audio
+  - input
+  - realtime
+  - microphone
+  - sounddevice
+  - nengogui
+
+nengo_version: ">=3.2,<5"
+
+backends:
+  - core
+
+dependencies:
+  - numpy
+  - sounddevice
+
+complexity: beginner
+
+# The entry_point opens a microphone stream at module load time, which CI
+# runners do not have; structure-only validation is appropriate.
+ci_runnable: false
+
+entry_point: realtime_audio.py
