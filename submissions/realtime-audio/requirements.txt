@@ -1,0 +1,4 @@
+nengo
+nengo-gui
+numpy
+sounddevice
