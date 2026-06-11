@@ -42,6 +42,6 @@ discussion: 423
 zenodo:
   concept_recid: 20479202
   concept_doi: "10.5281/zenodo.20479202"
-  version_doi: "10.5281/zenodo.20479203"
-  version_recid: 20479203
-  version: "0.1.0"
+  version_doi: "10.5281/zenodo.20648692"
+  version_recid: 20648692
+  version: "0.2.0"

@@ -50,6 +50,6 @@ discussion: 183
 zenodo:
   concept_recid: 20360768
   concept_doi: "10.5281/zenodo.20360768"
-  version_doi: "10.5281/zenodo.20516105"
-  version_recid: 20516105
-  version: "0.2.0"
+  version_doi: "10.5281/zenodo.20648694"
+  version_recid: 20648694
+  version: "0.2.1"

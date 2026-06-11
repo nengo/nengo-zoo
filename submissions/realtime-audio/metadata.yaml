@@ -42,3 +42,10 @@ ci_runnable: false
 
 entry_point: realtime_audio.py
 discussion: 1425
+
+zenodo:
+  concept_recid: 20648700
+  concept_doi: "10.5281/zenodo.20648700"
+  version_doi: "10.5281/zenodo.20648701"
+  version_recid: 20648701
+  version: "0.1.0"
