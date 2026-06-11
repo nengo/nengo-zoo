@@ -41,3 +41,4 @@ complexity: beginner
 ci_runnable: false
 
 entry_point: realtime_audio.py
+discussion: 1425
