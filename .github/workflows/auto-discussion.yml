@@ -63,5 +63,20 @@ jobs:
             echo "No new discussion numbers to commit."
           else
             git commit -m "CI: link submissions to their discussion threads"
-            git push
+            # Retry-with-rebase against concurrent bot pushes on main.
+            # See review.yml's tested-on push step for the rationale.
+            for attempt in 1 2 3 4 5; do
+              if git push; then exit 0; fi
+              if [ "$attempt" = "5" ]; then
+                echo "Push failed after 5 attempts."
+                exit 1
+              fi
+              echo "Push rejected (attempt $attempt/5) — rebasing on origin/main and retrying..."
+              if ! git pull --rebase origin main; then
+                echo "Rebase failed (likely a real conflict); cannot recover."
+                git rebase --abort 2>/dev/null || true
+                exit 1
+              fi
+              sleep $((RANDOM % 3 + 1))
+            done
           fi
