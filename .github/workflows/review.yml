@@ -88,9 +88,17 @@ jobs:
         # submission's tests even run — and submissions that don't themselves
         # use matplotlib (e.g. lorenz, controlled-oscillator) wouldn't normally
         # list it in requirements.txt.
+        #
+        # pytest is capped below 9.1 because that release removed the long-
+        # deprecated `startdir` parameter from the pytest_report_collectionfinish
+        # and pytest_report_header hookspecs. Nengo's pytest11 plugin still
+        # declares `startdir`, so pluggy rejects it at registration and *every*
+        # test run dies with PluginValidationError before collecting anything.
+        # Both Nengo versions in the matrix (3.2.0, 4.1.0) are affected. Lift
+        # this cap once Nengo's plugin moves to `start_path`.
         run: |
           pip install --upgrade pip
-          pip install pyyaml "jsonschema>=4.18" pytest packaging matplotlib
+          pip install pyyaml "jsonschema>=4.18" "pytest<9.1" packaging matplotlib
           pip install "nengo==${{ matrix.nengo-version }}" "${{ matrix.numpy-pin }}"
 
       - name: Skip cell if version outside declared range or ci_runnable=false
