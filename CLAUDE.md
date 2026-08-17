@@ -78,7 +78,7 @@ caches; the site is a periodically-rebuilt snapshot.
 - **`GITHUB_TOKEN` can create but not edit Discussions.** `createDiscussion`
   works; `updateDiscussion` returns "Resource not accessible by integration" —
   needs a PAT. (That's why `sync_discussions.py --refresh-bodies` is manual.)
-- **`actions/upload-artifact@v4` skips dot-directories** unless
+- **`actions/upload-artifact` skips dot-directories** unless
   `include-hidden-files: true`.
 - **Zenodo (InvenioRDM):** list a concept's versions via
   `/api/records/{recid}/versions` — the legacy `conceptrecid:` *search* query
